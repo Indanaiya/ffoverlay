@@ -52,7 +52,7 @@ class NotificationsProvider:
                     nextTimeIndex = i
                     break
 
-            # print(f"Node: {key}, nextTimeIndex: {nextTimeIndex}")
+            print(f"Node: {key}, nextTimeIndex: {nextTimeIndex}")
             sleepTime = timeUntilInEorzea(int(spawnTimes[nextTimeIndex][:2]))
             # print(f"Sleeping for: {sleepTime}")
             await asyncio.sleep(sleepTime)
@@ -61,14 +61,19 @@ class NotificationsProvider:
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            loop.run_until_complete(asyncio.gather(
-                self.gatherAlert('Imperial Fern'),
-                self.gatherAlert('Fireheart Cobalt'),
-                self.gatherAlert('Duskblooms'),
-                self.gatherAlert('Purpure Shell Chips'),
-                self.gatherAlert('Merbau Log'),
-                self.gatherAlert('Ashen Alumen'),
-                ))
+            functions = []
+            for key in list(self.gatheredItemsData.keys()):
+                functions.append(self.gatherAlert(key))
+            loop.run_until_complete(asyncio.gather(*functions))
+            # loop.run_until_complete(asyncio.gather(
+            #     self.gatherAlert('Imperial Fern'),
+            #     self.gatherAlert('Fireheart Cobalt'),
+            #     self.gatherAlert('Duskblooms'),
+            #     self.gatherAlert('Purpure Shell Chips'),
+            #     self.gatherAlert('Merbau Log'),
+            #     self.gatherAlert('Ashen Alumen'),
+            #     ))
+
         finally:
             loop.close()
 
