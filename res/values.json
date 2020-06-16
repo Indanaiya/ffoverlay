@@ -2,7 +2,7 @@
   "Imperial Fern": {
     "name": "Imperial Fern",
     "id": "29978",
-    "spawnTimes": ["12:00", "00:00"],
+    "spawnTimes": ["00:00", "12:00"],
     "lifespan": 2,
     "map":"Kholusia",
     "x":28,
