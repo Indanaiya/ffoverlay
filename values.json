@@ -1,0 +1,67 @@
+{
+  "Imperial Fern": {
+    "name": "Imperial Fern",
+    "id": "29978",
+    "spawnTimes": ["12:00", "00:00"],
+    "map":"Kholusia",
+    "x":28,
+    "y":21,
+    "patch": "5.2",
+    "class": "BTN"
+  },
+
+  "Fireheart Cobalt": {
+    "name": "Fireheart Cobalt",
+    "id": "29968",
+    "spawnTimes":["02:00", "14:00"],
+    "map": "Lakeland",
+    "x":5,
+    "y":34,
+    "patch": "5.2",
+    "class": "MIN"
+  },
+
+  "Duskblooms": {
+    "name": "Duskblooms",
+    "id": "29974",
+    "spawnTimes": ["04:00", "16:00"],
+    "map": "Ahm Aereng",
+    "x": 32,
+    "y": 33,
+    "patch": "5.2",
+    "class": "BTN"
+  },
+
+  "Purpure Shell Chips": {
+    "name": "Purpure Shell Chips",
+    "id": "29970",
+    "spawnTimes": ["06:00", "18:00"],
+    "map": "Tempest",
+    "x": 34,
+    "y": 31,
+    "patch": "5.2",
+    "class": "MIN"
+  },
+
+  "Merbau Log": {
+    "name": "Merbau Log",
+    "id": "29972",
+    "spawnTimes": ["08:00", "20:00"],
+    "map": "Il Mheg",
+    "x": 36,
+    "y": 27,
+    "patch": "5.2",
+    "class": "BTN"
+  },
+
+  "Ashen Alumen": {
+    "name": "Ashen Alumen",
+    "id": "29976",
+    "spawnTimes": ["10:00", "22:00"],
+    "map": "Ahm Aereng",
+    "x": 20,
+    "y": 9,
+    "patch": "5.2",
+    "class": "MIN"
+  }
+}
