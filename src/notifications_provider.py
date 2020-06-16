@@ -31,9 +31,10 @@ class NotificationsProvider:
     def __init__(self, gatheredItemsLocation, marketDataAddress):
         self.gatheredItemsData, self.marketData = self.getData(gatheredItemsLocation, marketDataAddress)
 
-
-    async def gatherAlert(self, key, valuesData, price):
+    async def gatherAlert(self, key):
         """Prints a message when a new gathering node spawns"""
+        valuesData = self.gatheredItemsData
+        price = self.marketData[key]['listings'][0]['pricePerUnit']
         while True:
             eorzeaHours, eorzeaMinutes = getEorzeaTimeDecimal()
             nextTimeIndex = 0
@@ -61,12 +62,12 @@ class NotificationsProvider:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.run_until_complete(asyncio.gather(
-                self.gatherAlert('Imperial Fern', self.gatheredItemsData, self.marketData['Imperial Fern']['listings'][0]['pricePerUnit']),
-                self.gatherAlert('Fireheart Cobalt', self.gatheredItemsData, self.marketData['Fireheart Cobalt']['listings'][0]['pricePerUnit']),
-                self.gatherAlert('Duskblooms', self.gatheredItemsData, self.marketData['Duskblooms']['listings'][0]['pricePerUnit']),
-                self.gatherAlert('Purpure Shell Chips', self.gatheredItemsData, self.marketData['Purpure Shell Chips']['listings'][0]['pricePerUnit']),
-                self.gatherAlert('Merbau Log', self.gatheredItemsData, self.marketData['Merbau Log']['listings'][0]['pricePerUnit']),
-                self.gatherAlert('Ashen Alumen', self.gatheredItemsData, self.marketData['Fireheart Cobalt']['listings'][0]['pricePerUnit']),
+                self.gatherAlert('Imperial Fern'),
+                self.gatherAlert('Fireheart Cobalt'),
+                self.gatherAlert('Duskblooms'),
+                self.gatherAlert('Purpure Shell Chips'),
+                self.gatherAlert('Merbau Log'),
+                self.gatherAlert('Ashen Alumen'),
                 ))
         finally:
             loop.close()
