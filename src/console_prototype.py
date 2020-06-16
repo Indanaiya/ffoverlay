@@ -1,22 +1,27 @@
 import requests
 import json
 import asyncio
-from eorzea_time import getEorzeaTime, timeUntilInEorzea
+from eorzea_time import getEorzeaTime, timeUntilInEorzea, getEorzeaTimeDecimal
 
 baseurl = "https://universalis.app/api/Chaos/"
 valuesJsonFileLocation = '../res/values.json'
 
 async def gatherAlert(key, valuesData, price):
     """Prints a message when a new gathering node spawns"""
-    eorzeaHours, eorzeaMinutes = getEorzeaTime()
-    nextTimeIndex = 0
-    spawnTimes = valuesData[key]['spawnTimes']
-    for i in range(len(spawnTimes)):
-        if eorzeaHours == int(spawnTimes[i][:2]):
-            if not (i == len(spawnTimes)-1):
-                nextTimeIndex = i+1
-            print(f"New node spawn: {valuesData[key]['name']}  {price}gil per unit")
-            await loop.call_later(timeUntilInEorzea(int(spawnTimes[nextTimeIndex][:2])), gatherAlert(key, valuesData, price))
+    while True:
+        eorzeaHours, eorzeaMinutes = getEorzeaTimeDecimal()
+        nextTimeIndex = 0
+        spawnTimes = valuesData[key]['spawnTimes']
+        for i in range(len(spawnTimes)):
+            if eorzeaHours >= int(spawnTimes[i][:2]):
+                if not (i == len(spawnTimes)-1):
+                    nextTimeIndex = i+1
+                if eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']:
+                    print(f"New node spawn[{eorzeaHours}]: {valuesData[key]['name']}  {price}gil per unit")
+
+        sleepTime = timeUntilInEorzea(int(spawnTimes[nextTimeIndex][:2]))
+        print(f"Sleeping for: {sleepTime}")
+        await asyncio.sleep(sleepTime)
 
 #This will need to be async in the final product:
 #aiohttp?
@@ -40,6 +45,14 @@ if __name__ == "__main__":
     try:
         loop = asyncio.get_event_loop()
         valuesData, jsonData = main()
-        loop.run_until_complete(gatherAlert('Imperial Fern', valuesData, jsonData['Fireheart Cobalt']['listings'][0]['pricePerUnit']))
+        #Make a class so I don't need to keep reentering the name and valuesData
+        loop.run_until_complete(asyncio.gather(
+            gatherAlert('Imperial Fern', valuesData, jsonData['Imperial Fern']['listings'][0]['pricePerUnit']),
+            gatherAlert('Fireheart Cobalt', valuesData, jsonData['Fireheart Cobalt']['listings'][0]['pricePerUnit']),
+            gatherAlert('Duskblooms', valuesData, jsonData['Duskblooms']['listings'][0]['pricePerUnit']),
+            gatherAlert('Purpure Shell Chips', valuesData, jsonData['Purpure Shell Chips']['listings'][0]['pricePerUnit']),
+            gatherAlert('Merbau Log', valuesData, jsonData['Merbau Log']['listings'][0]['pricePerUnit']),
+            gatherAlert('Ashen Alumen', valuesData, jsonData['Fireheart Cobalt']['listings'][0]['pricePerUnit']),
+            ))
     finally:
         loop.close()
