@@ -13,7 +13,7 @@ class App():
         self.root.wm_attributes("-transparentcolor", "white") #Where there was once white there is now transparency
 
         #Main button:
-        self.image = tk.PhotoImage(file='black_dot.png')
+        self.image = tk.PhotoImage(file='../res/black_dot.png')
         self.label = tk.Label(self.root, image=self.image, bg='white')
         self.label.bind('<Button-1>', self.callback_hello)
         self.label.bind('<Enter>', self.callback_hello)
