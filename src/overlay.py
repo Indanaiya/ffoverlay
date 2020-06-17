@@ -32,6 +32,20 @@ class OptionsPanel(tk.Label):
             print(f"Displaying: {self.labels[i]}")
             self.labels[i].grid(row=0, column=i)
 
+class Settings():
+    def __init__(self, main):
+        self.main=main
+
+    def destroyed(self, event):
+        self.main.root.wm_attributes("-disabled", False)#Makes the main window interactable again
+
+    def showSettings(self, event):
+        print("Settings button pressed.")
+        self.main.root.wm_attributes("-disabled", True)#Makes the main window uninteractable
+        self.root = tk.Tk()
+        self.root.bind("<Destroy>", self.destroyed)
+        self.root.mainloop()
+
 #Transparency will only work on windows
 class App():
     def __init__(self, size='standard'):
@@ -39,6 +53,7 @@ class App():
             raise ValueError(f"Did not recognise size: {size}. Expected one of: {presets['size'].keys()}")
         else:
             self.size = size #Need this so value can be accessed outside of class
+
         #Root:
         self.root = tk.Tk()
         self.root.configure(background="white")
@@ -48,7 +63,10 @@ class App():
 
         #Options Panel
         self.image2 = tk.PhotoImage(file='../res/black_dot_32.png') #Temporary
-        self.optionsPanel = OptionsPanel(self.root, [tk.Label(self.root, image=self.image2)], bg="white")
+        self.settings = Settings(self)
+        self.settingsButton = tk.Label(self.root, image=self.image2)
+        self.settingsButton.bind('<Button-1>', self.settings.showSettings)
+        self.optionsPanel = OptionsPanel(self.root, [self.settingsButton], bg="white")
         self.optionsPanel.grid(row=0, column=1, rowspan=2)
         self.optionsPanelRemoved = True
 
@@ -71,6 +89,10 @@ class App():
         #Will change main button image
 
     def click(self, event):
+        try:
+            print(f"Root name: {self.settings.root}")
+        except Exception:
+            print(repr(Exception))
         if self.optionsPanelRemoved:
             self.optionsPanelRemoved = False
             self.optionsPanel.show()
