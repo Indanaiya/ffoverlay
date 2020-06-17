@@ -23,7 +23,7 @@ class NotificationsProvider:
                     with requests.request("GET", marketDataAddress + gatheredItemsData[key]["id"]) as response:
                         responseJson = response.json()
                         print("Item Id: " + str(responseJson['itemID']) + ", lowest price: " + str(responseJson['listings'][0]['pricePerUnit']))
-                        marketData[key]=responseJson
+                        marketData[key] = responseJson
                 except requests.exceptions.RequestException as err:
                     print(f"Unable to get data from Universalis for {key}: {repr(err)}\n")
             return gatheredItemsData, marketData
