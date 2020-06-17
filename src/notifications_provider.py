@@ -15,7 +15,7 @@ class NotificationsProvider:
         """
         Gets data both from Universalis, and from gathered_items.json
         """
-        with open(gatheredItemsLocation) as file:
+        with open(gatheredItemsLocation) as file:#Rahter than do this all at the start. I should get the data when needed, and then cache it
             gatheredItemsData = json.load(file)
             marketData = {}
             for key in list(gatheredItemsData.keys()):

@@ -14,6 +14,24 @@ presets = {'size':{'standard':
                     }
             }
 
+class OptionsPanel(tk.Label):
+    def __init__(self, root, labels: [], bg='white', height=16):
+        super().__init__(root, bg=bg)
+        self.labels = labels #I should add checking here maybe
+        self.height = height
+        for label in self.labels:
+            label.config(height=height)
+
+    def hide(self):
+        for l in self.labels:
+            l.grid_remove()
+
+    def show(self):
+        print("Show function called")
+        for i in range(len(self.labels)):
+            print(f"Displaying: {self.labels[i]}")
+            self.labels[i].grid(row=0, column=i)
+
 #Transparency will only work on windows
 class App():
     def __init__(self, size='standard'):
@@ -25,28 +43,42 @@ class App():
         self.root = tk.Tk()
         self.root.configure(background="white")
         self.root.overrideredirect(True) #Makes the window borderless
-        #self.root.geometry("48x96") #The window dimensions
         self.root.wm_attributes("-topmost", True) #Window is always on top
-        #self.root.wm_attributes("-disabled", True) #Draws focus and makes window impossible to interract with
         self.root.wm_attributes("-transparentcolor", "white") #Where there was once white there is now transparency
+
+        #Options Panel
+        self.image2 = tk.PhotoImage(file='../res/black_dot_32.png') #Temporary
+        self.optionsPanel = OptionsPanel(self.root, [tk.Label(self.root, image=self.image2)], bg="white")
+        self.optionsPanel.grid(row=0, column=1, rowspan=2)
+        self.optionsPanelRemoved = True
 
         #Main button:
         self.image = tk.PhotoImage(file=presets['size'][self.size]['mainButton'])
-        self.label = tk.Label(self.root, image=self.image, bg='white', borderwidth=0)
-        self.label.bind('<Button-1>', self.click)
-        self.label.bind('<Enter>', self.hover)
-        self.label.bind('<Leave>', self.unhover)
-        self.label.grid(row=0, column=0, sticky='w')
+        self.mainLabel = tk.Label(self.root, image=self.image, bg='white', borderwidth=0)
+        self.mainLabel.grid(row=0, column=0, sticky='nw')
+        self.mainLabel.bind('<Button-1>', self.click)
+        self.mainLabel.bind('<Enter>', self.hover)
+        self.mainLabel.bind('<Leave>', self.unhover)
+        self.optionsLabels = {}
         self.gatherableLabels = {}
 
     def hover(self, event):
         print("Main button moused over")
+        #Will change main button image
 
     def unhover(self, event):
         print("Mouse moved off of main button")
+        #Will change main button image
 
     def click(self, event):
-        print("Main button pressed")
+        if self.optionsPanelRemoved:
+            self.optionsPanelRemoved = False
+            self.optionsPanel.show()
+            print("Panel shown")
+        else:
+            self.optionsPanelRemoved = True
+            self.optionsPanel.hide()
+            print("Panel hidden")
 
     def setGatherableLabels(self, *args:(str, tk.Label)):
         self.gatherableLabels = {k:v for k,v in args}
@@ -60,9 +92,9 @@ class App():
         self.redrawGatherableLabels()
 
     def redrawGatherableLabels(self):
-        i = 1
+        i = 2
         for l in self.gatherableLabels.values():
-            l.grid(row=i, columnspan=2)
+            l.grid(row=i, columnspan=2, sticky='w')
             i+=1
 
     async def removeGatherableLabel(self, key):
