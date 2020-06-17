@@ -14,6 +14,10 @@ presets = {'size':{'standard':
                     }
             }
 
+gatheredItemsLocation = '../res/values.json'
+universalisUrl = "https://universalis.app/api/"
+datacenter = "Chaos"
+
 class OptionsPanel(tk.Label):
     def __init__(self, root, labels: [], bg='white', height=16):
         super().__init__(root, bg=bg)
@@ -130,7 +134,7 @@ if __name__ == "__main__":
     async def removeSpawnLabel(name=None):
         await app.removeGatherableLabel(name)
 
-    notificationsProvider = NotificationsProvider('../res/values.json', "https://universalis.app/api/Chaos/", showSpawnLabel, removeSpawnLabel)
+    notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{datacenter}/", showSpawnLabel, removeSpawnLabel)
     notificationsProviderThread = threading.Thread(target = notificationsProvider.beginGatherAlerts)
     configValues = getConfig()
     app = App(size=configValues['general']['size'])
