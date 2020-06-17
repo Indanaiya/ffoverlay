@@ -38,7 +38,7 @@ class NotificationsProvider:
         self.spawnCallback = spawnCallback
         self.despawnCallback = despawnCallback
 
-    async def gatherAlert(self, key, eorzeaTimeDecimal=getEorzeaTimeDecimal()):
+    async def gatherAlert(self, key, getTime=getEorzeaTimeDecimal):
         """
         Executes the self.spawnCallback function when the node named 'key' spawns
         Executes the self.despawnCallback function when the node named 'key' despawns
@@ -48,13 +48,13 @@ class NotificationsProvider:
         valuesData = self.gatheredItemsData
         price = self.marketData[key]['listings'][0]['pricePerUnit']
         while True:
-            eorzeaHours, eorzeaMinutes = eorzeaTimeDecimal
+            eorzeaHours, eorzeaMinutes = getTime()
             currentTimeIndex = 0
             nextTimeIndex = 0
             name = valuesData[key]['name']
             spawnTimes = valuesData[key]['spawnTimes']
             for i in range(len(spawnTimes)):
-                #print(f"Node: {key}, i: {i}, spawnTimes[i][:2]: {spawnTimes[i][:2]}")
+                print(f"Node: {key}, i: {i}, spawnTimes[i][:2]: {spawnTimes[i][:2]}")
                 if eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']: #Means the node is up
                     #print(f"Function says New node spawn[{eorzeaHours}]: {valuesData[key]['name']}  {price}gil per unit")
                     currentTimeIndex = i
@@ -73,14 +73,14 @@ class NotificationsProvider:
                 elif eorzeaHours < int(spawnTimes[i][:2]):
                     nextTimeIndex = i
                     break
-                elif eorzeaHours > int(spawnTimes[i][:2]) and i == len(spawnTimes) - 1:#Might be able to make this more efficient by moving the > up
+                elif i == len(spawnTimes) - 1:#eorzeaHours > int(spawnTimes[i][:2]) is implied by reaching this point
                     nextTimeIndex = 0
                     break #Break here is just for clarity. if i==len(spawnTimes)-1 then this would be the last itteration of the for loop regardless
 
 
             #Wait for node to spawn again:
-            print(f"Node: {key}, nextTimeIndex: {nextTimeIndex}")
             sleepTime = timeUntilInEorzea(int(spawnTimes[nextTimeIndex][:2]))
+            print(f"[{eorzeaHours}]Node: {key}, nextTimeIndex: {nextTimeIndex}, sleep for: {sleepTime}")
             await asyncio.sleep(sleepTime)
 
     def beginGatherAlerts(self):
