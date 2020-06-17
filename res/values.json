@@ -69,5 +69,17 @@
     "y": 9,
     "patch": "5.2",
     "class": "MIN"
+  },
+
+  "White Clay": {
+    "name": "Chiaroglow Aethersand (White Clay)",
+    "id": "27811",
+    "spawnTimes": ["20:00"],
+    "lifespan": 4,
+    "map": "Kholusia",
+    "x": 13,
+    "y": 13,
+    "patch": "5.0",
+    "class": "BTN"
   }
 }
