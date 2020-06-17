@@ -56,11 +56,6 @@ class App():
         self.gatherableLabels.pop(key)
 
 if __name__ == "__main__":
-    # async def setGatherables():
-    #     app.setGatherableLabels(("Hello World", tk.Label(app.root, text="Hello World", borderwidth=0, width=11)))
-    #     await app.addGatherableLabel(("Hello World 2", tk.Label(app.root, text="Hello World 2", borderwidth=0, width=11)))
-    #     await app.removeGatherableLabel("Hello World")
-
     async def showSpawnLabel(name=None, price=None):
         await app.addGatherableLabel((name, tk.Label(app.root, text=f"{name} | {price}gil")))
 
@@ -68,8 +63,8 @@ if __name__ == "__main__":
         await app.removeGatherableLabel(name)
 
     notificationsProvider = NotificationsProvider('../res/values.json', "https://universalis.app/api/Chaos/", showSpawnLabel, removeSpawnLabel)
-    x=threading.Thread(target=notificationsProvider.beginGatherAlerts)
+    notificationsProviderThread = threading.Thread(target = notificationsProvider.beginGatherAlerts)
 
     app = App()
-    x.start()
+    notificationsProviderThread.start()
     app.root.mainloop()

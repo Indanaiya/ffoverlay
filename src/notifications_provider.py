@@ -58,6 +58,7 @@ class NotificationsProvider:
             spawnTimes = valuesData[key]['spawnTimes']
             for i in range(len(spawnTimes)):
                 print(f"Node: {key}, i: {i}, spawnTimes[i][:2]: {spawnTimes[i][:2]}")
+                #TODO THIS IS STILL BROKEN
                 if eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']: #Means the node is up
                     #print(f"Function says New node spawn[{eorzeaHours}]: {valuesData[key]['name']}  {price}gil per unit")
                     currentTimeIndex = i
@@ -99,6 +100,9 @@ class NotificationsProvider:
             loop.close()
 
 if __name__ == "__main__":
+    """
+    Provides notifications in a console app
+    """
     async def printSpawnMessage(name=None, price=None):
         print(f"New node spawn[{getEorzeaTime()}]: {name}  {price}gil per unit")
 
@@ -106,6 +110,5 @@ if __name__ == "__main__":
         print(f"Node despawn[{getEorzeaTime()}]: {name}")
 
     notificationsProvider = NotificationsProvider('../res/values.json', "https://universalis.app/api/Chaos/", printSpawnMessage, printDespawnMessage)
-    x=threading.Thread(target=notificationsProvider.beginGatherAlerts)
-    x.start()
-    #notificationsProvider.beginGatherAlerts()
+    notificationsProviderThread = threading.Thread(target = notificationsProvider.beginGatherAlerts)
+    notificationsProviderThread.start()

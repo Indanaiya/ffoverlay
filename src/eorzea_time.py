@@ -1,6 +1,7 @@
 import datetime
 import time
 
+#This number was provided by /u/Clorifex link is in getEorzeaTimeDecimal's description
 eorzeaEpochMultiplier = 20571.428571428573
 
 def getEorzeaTimeDecimal():
@@ -37,8 +38,3 @@ def timeUntilInEorzea(targetTime):
     else: # target is right now
         targetTime = 0
     return secondsUntilTarget
-
-if __name__ == "__main__":
-    print(getEorzeaTimeDecimal())
-    print(getEorzeaTime())
-    print(timeUntilInEorzea(0.25))
