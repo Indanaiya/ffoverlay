@@ -2,12 +2,12 @@ import configparser
 import os
 
 configAddress = "../config/config.ini"
-general = {'size':'standard'}
-acceptedValues = {'size': ['small', 'standard', 'large']}
+defaults = {'size':'standard'}
+acceptedValues = {'size': ['standard', 'large']}
 
 def generateConfig():
     parser = configparser.ConfigParser()
-    parser['general'] = general
+    parser['general'] = defaults
     with open(configAddress, 'w') as configfile:
         parser.write(configfile)
 
@@ -34,6 +34,4 @@ def updateValue(key, value):
 
 if __name__ == "__main__":
     generateConfig()
-    print(getConfig()['general'])
-    updateValue('size', 'small')
     print(getConfig()['general'])
