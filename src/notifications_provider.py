@@ -83,7 +83,7 @@ class NotificationsProvider:
 
             #Wait for node to spawn again:
             sleepTime = timeUntilInEorzea(int(spawnTimes[nextTimeIndex][:2]))
-            print(f"[{eorzeaHours}]Node: {key}, nextTimeIndex: {nextTimeIndex}, sleep for: {sleepTime}")
+            print(f"Node: {key}, nextTimeIndex: {nextTimeIndex}, sleep for: {sleepTime}")
             await asyncio.sleep(sleepTime)
 
     def beginGatherAlerts(self):
