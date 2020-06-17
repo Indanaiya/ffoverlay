@@ -38,7 +38,7 @@ class NotificationsProvider:
         self.spawnCallback = spawnCallback
         self.despawnCallback = despawnCallback
 
-    async def gatherAlert(self, key):
+    async def gatherAlert(self, key, eorzeaTimeDecimal=getEorzeaTimeDecimal()):
         """
         Executes the self.spawnCallback function when the node named 'key' spawns
         Executes the self.despawnCallback function when the node named 'key' despawns
@@ -48,15 +48,15 @@ class NotificationsProvider:
         valuesData = self.gatheredItemsData
         price = self.marketData[key]['listings'][0]['pricePerUnit']
         while True:
-            eorzeaHours, eorzeaMinutes = getEorzeaTimeDecimal()
+            eorzeaHours, eorzeaMinutes = eorzeaTimeDecimal
             currentTimeIndex = 0
             nextTimeIndex = 0
             name = valuesData[key]['name']
             spawnTimes = valuesData[key]['spawnTimes']
             for i in range(len(spawnTimes)):
-                #print(f"Node: {key}, i: {i}")
+                #print(f"Node: {key}, i: {i}, spawnTimes[i][:2]: {spawnTimes[i][:2]}")
                 if eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']: #Means the node is up
-                    #print(f"New node spawn[{eorzeaHours}]: {valuesData[key]['name']}  {price}gil per unit")
+                    #print(f"Function says New node spawn[{eorzeaHours}]: {valuesData[key]['name']}  {price}gil per unit")
                     currentTimeIndex = i
                     nextTimeIndex = (i+1, 0)[i==len(spawnTimes)-1]
 
@@ -64,17 +64,19 @@ class NotificationsProvider:
                     self.spawnCallback(name=name, price=price)
 
                     #Notification for despawn:
-                    sleepTime = timeUntilInEorzea(int(spawnTimes[currentTimeIndex][:2]) + self.gatheredItemsData[key]['lifespan'])
+                    despawnTime = int(spawnTimes[currentTimeIndex][:2]) + self.gatheredItemsData[key]['lifespan']
+                    sleepTime = timeUntilInEorzea((despawnTime, despawnTime-24)[despawnTime>=24])#Ternary is to loop back around from 24 to 00 (of the next day)
                     await asyncio.sleep(sleepTime)
                     self.despawnCallback(name=name)
 
                     break
-                elif eorzeaHours > int(spawnTimes[i][:2]):
-                    if i == len(spawnTimes)-1:
-                        nextTimeIndex = 0
-                else:
+                elif eorzeaHours < int(spawnTimes[i][:2]):
                     nextTimeIndex = i
                     break
+                elif eorzeaHours > int(spawnTimes[i][:2]) and i == len(spawnTimes) - 1:#Might be able to make this more efficient by moving the > up
+                    nextTimeIndex = 0
+                    break #Break here is just for clarity. if i==len(spawnTimes)-1 then this would be the last itteration of the for loop regardless
+
 
             #Wait for node to spawn again:
             print(f"Node: {key}, nextTimeIndex: {nextTimeIndex}")
@@ -93,13 +95,13 @@ class NotificationsProvider:
         finally:
             loop.close()
 
-def printSpawnMessage(name=None, price=None):
-    print(f"New node spawn[{getEorzeaTime()}]: {name}  {price}gil per unit")
-
-def printDespawnMessage(name=None):
-    print(f"Node despawn[{getEorzeaTime()}]: {name}")
-
 if __name__ == "__main__":
+    def printSpawnMessage(name=None, price=None):
+        print(f"New node spawn[{getEorzeaTime()}]: {name}  {price}gil per unit")
+
+    def printDespawnMessage(name=None):
+        print(f"Node despawn[{getEorzeaTime()}]: {name}")
+
     notificationsProvider = NotificationsProvider('../res/values.json', "https://universalis.app/api/Chaos/", printSpawnMessage, printDespawnMessage)
     x=threading.Thread(target=notificationsProvider.beginGatherAlerts)
     x.start()
