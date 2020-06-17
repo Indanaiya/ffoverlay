@@ -3,6 +3,7 @@ import json
 import asyncio
 import threading
 import time
+import inspect
 from eorzea_time import getEorzeaTime, timeUntilInEorzea, getEorzeaTimeDecimal
 
 class NotificationsProvider:
@@ -30,9 +31,11 @@ class NotificationsProvider:
 
     def __init__(self, gatheredItemsLocation, marketDataAddress, spawnCallback, despawnCallback):
         if not 'name' in spawnCallback.__code__.co_varnames and not 'price' in spawnCallback.__code__.co_varnames:
-            raise ValueError("Expected name and price parameters in spawnCallback")
+            raise ValueError("Expected name and price parameters in spawnCallback.")
         if not 'name' in despawnCallback.__code__.co_varnames:
-            raise ValueError("Expected name parameter in despawnCallback")
+            raise ValueError("Expected name parameter in despawnCallback.")
+        if not inspect.iscoroutinefunction(spawnCallback) or not inspect.iscoroutinefunction(despawnCallback):
+            raise ValueError("spawnCallback and despawnCallback must both be coroutines.")
 
         self.gatheredItemsData, self.marketData = self.getData(gatheredItemsLocation, marketDataAddress)
         self.spawnCallback = spawnCallback
@@ -40,8 +43,8 @@ class NotificationsProvider:
 
     async def gatherAlert(self, key, getTime=getEorzeaTimeDecimal):
         """
-        Executes the self.spawnCallback function when the node named 'key' spawns
-        Executes the self.despawnCallback function when the node named 'key' despawns
+        Executes the self.spawnCallback coroutine when the node named 'key' spawns
+        Executes the self.despawnCallback coroutine when the node named 'key' despawns
         self.spawnCallback should have the arguments name and price
         self.despawnCallback should have the argument name
         """
@@ -61,13 +64,13 @@ class NotificationsProvider:
                     nextTimeIndex = (i+1, 0)[i==len(spawnTimes)-1]
 
                     #Notification for spawn:
-                    self.spawnCallback(name=name, price=price)
+                    await self.spawnCallback(name=name, price=price)
 
                     #Notification for despawn:
                     despawnTime = int(spawnTimes[currentTimeIndex][:2]) + self.gatheredItemsData[key]['lifespan']
                     sleepTime = timeUntilInEorzea((despawnTime, despawnTime-24)[despawnTime>=24])#Ternary is to loop back around from 24 to 00 (of the next day)
                     await asyncio.sleep(sleepTime)
-                    self.despawnCallback(name=name)
+                    await self.despawnCallback(name=name)
 
                     break
                 elif eorzeaHours < int(spawnTimes[i][:2]):
@@ -96,10 +99,10 @@ class NotificationsProvider:
             loop.close()
 
 if __name__ == "__main__":
-    def printSpawnMessage(name=None, price=None):
+    async def printSpawnMessage(name=None, price=None):
         print(f"New node spawn[{getEorzeaTime()}]: {name}  {price}gil per unit")
 
-    def printDespawnMessage(name=None):
+    async def printDespawnMessage(name=None):
         print(f"Node despawn[{getEorzeaTime()}]: {name}")
 
     notificationsProvider = NotificationsProvider('../res/values.json', "https://universalis.app/api/Chaos/", printSpawnMessage, printDespawnMessage)
