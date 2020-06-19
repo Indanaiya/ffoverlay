@@ -5,18 +5,27 @@ import asyncio
 from notifications_provider import NotificationsProvider
 from load_configuration import *
 
+
 presets = {'size':{'standard':
                         {'mainButton': '../res/black_dot_16.png',
                         'font-size': 11},
                     'large':
                         {'mainButton': '../res/black_dot_32.png',
                         'font-size': 16}
+                    },
+            'datacenter': { 'Chaos': {'region': 'EU'},
+                            'Light': {'region': 'EU'},
+                            'Aether': {'region': 'NA'},
+                            'Primal': {'region': 'NA'},
+                            'Crystal': {'region': 'NA'},
+                            'Elemental': {'region': 'JP'},
+                            'Gaia': {'region': 'JP'},
+                            'Mana': {'region': 'JP'}
                     }
             }
 
 gatheredItemsLocation = '../res/values.json'
 universalisUrl = "https://universalis.app/api/"
-datacenter = "Chaos"
 
 class OptionsPanel(tk.Label):
     def __init__(self, root, labels: [], bg='white', height=16):
@@ -31,11 +40,10 @@ class OptionsPanel(tk.Label):
             l.grid_remove()
 
     def show(self):
-        print("Show function called")
         for i in range(len(self.labels)):
-            print(f"Displaying: {self.labels[i]}")
             self.labels[i].grid(row=0, column=i)
 
+#Settings window
 class Settings():
     def __init__(self, main):
         self.main=main
@@ -47,7 +55,17 @@ class Settings():
         print("Settings button pressed.")
         self.main.root.wm_attributes("-disabled", True)#Makes the main window uninteractable
         self.root = tk.Tk()
+        self.root.geometry('250x500')
         self.root.bind("<Destroy>", self.destroyed)
+
+        #Size selector:
+        self.size = tk.StringVar(self.root)
+        self.size.set(self.main.size)
+        self.sizeLabel = tk.Label(self.root, text="Size: ")
+        self.sizeLabel.grid(row=0, column=0)
+        self.sizeSelector = tk.OptionMenu(self.root, self.size, *[size for size in presets['size'].keys()])
+        self.sizeSelector.grid(row=0, column=1)
+
         self.root.mainloop()
 
 #Transparency will only work on windows
@@ -93,27 +111,15 @@ class App():
         #Will change main button image
 
     def click(self, event):
-        try:
-            print(f"Root name: {self.settings.root}")
-        except Exception:
-            print(repr(Exception))
         if self.optionsPanelRemoved:
             self.optionsPanelRemoved = False
             self.optionsPanel.show()
-            print("Panel shown")
         else:
             self.optionsPanelRemoved = True
             self.optionsPanel.hide()
-            print("Panel hidden")
 
     def setGatherableLabels(self, *args:(str, tk.Label)):
         self.gatherableLabels = {k:v for k,v in args}
-        print(self.gatherableLabels)
-        self.redrawGatherableLabels()
-
-    async def addGatherableLabel(self, keyLabelPair:(str, tk.Label)):
-        key, label = keyLabelPair
-        self.gatherableLabels[key] = label
         print(self.gatherableLabels)
         self.redrawGatherableLabels()
 
@@ -122,6 +128,12 @@ class App():
         for l in self.gatherableLabels.values():
             l.grid(row=i, columnspan=2, sticky='w')
             i+=1
+
+    async def addGatherableLabel(self, keyLabelPair:(str, tk.Label)):
+        key, label = keyLabelPair
+        self.gatherableLabels[key] = label
+        print(self.gatherableLabels)
+        self.redrawGatherableLabels()
 
     async def removeGatherableLabel(self, key):
         self.gatherableLabels[key].destroy()
@@ -134,9 +146,9 @@ if __name__ == "__main__":
     async def removeSpawnLabel(name=None):
         await app.removeGatherableLabel(name)
 
-    notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{datacenter}/", showSpawnLabel, removeSpawnLabel)
-    notificationsProviderThread = threading.Thread(target = notificationsProvider.beginGatherAlerts)
     configValues = getConfig()
+    notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{configValues['general']['datacenter']}/", showSpawnLabel, removeSpawnLabel)
+    notificationsProviderThread = threading.Thread(target = notificationsProvider.beginGatherAlerts)
     app = App(size=configValues['general']['size'])
     notificationsProviderThread.start()
     app.root.mainloop()
