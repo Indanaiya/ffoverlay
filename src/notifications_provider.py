@@ -10,6 +10,18 @@ class NotificationsProvider:
     """
     A class to provide notifications when a new gathering item becomes available to gather
     """
+    def __init__(self, gatheredItemsLocation, marketDataAddress, spawnCallback, despawnCallback):
+        if not 'name' in spawnCallback.__code__.co_varnames and not 'price' in spawnCallback.__code__.co_varnames:
+            raise ValueError("Expected name and price parameters in spawnCallback.")
+        if not 'name' in despawnCallback.__code__.co_varnames:
+            raise ValueError("Expected name parameter in despawnCallback.")
+        if not inspect.iscoroutinefunction(spawnCallback) or not inspect.iscoroutinefunction(despawnCallback):
+            raise ValueError("spawnCallback and despawnCallback must both be coroutines.")
+
+        self.gatheredItemsData, self.marketData = self.getData(gatheredItemsLocation, marketDataAddress)
+        self.spawnCallback = spawnCallback
+        self.despawnCallback = despawnCallback
+
 
     def getData(self, gatheredItemsLocation, marketDataAddress):
         """
@@ -29,18 +41,6 @@ class NotificationsProvider:
             return gatheredItemsData, marketData
 
 
-    def __init__(self, gatheredItemsLocation, marketDataAddress, spawnCallback, despawnCallback):
-        if not 'name' in spawnCallback.__code__.co_varnames and not 'price' in spawnCallback.__code__.co_varnames:
-            raise ValueError("Expected name and price parameters in spawnCallback.")
-        if not 'name' in despawnCallback.__code__.co_varnames:
-            raise ValueError("Expected name parameter in despawnCallback.")
-        if not inspect.iscoroutinefunction(spawnCallback) or not inspect.iscoroutinefunction(despawnCallback):
-            raise ValueError("spawnCallback and despawnCallback must both be coroutines.")
-
-        self.gatheredItemsData, self.marketData = self.getData(gatheredItemsLocation, marketDataAddress)
-        self.spawnCallback = spawnCallback
-        self.despawnCallback = despawnCallback
-
     async def gatherAlert(self, key, getTime=getEorzeaTimeDecimal):
         """
         Executes the self.spawnCallback coroutine when the node named 'key' spawns
@@ -58,7 +58,6 @@ class NotificationsProvider:
             spawnTimes = valuesData[key]['spawnTimes']
             for i in range(len(spawnTimes)):
                 print(f"Node: {key}, i: {i}, spawnTimes[i][:2]: {spawnTimes[i][:2]}")
-                #TODO THIS IS STILL BROKEN
                 if eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']: #Means the node is up
                     #print(f"Function says New node spawn[{eorzeaHours}]: {valuesData[key]['name']}  {price}gil per unit")
                     currentTimeIndex = i
@@ -81,11 +80,11 @@ class NotificationsProvider:
                     nextTimeIndex = 0
                     break #Break here is just for clarity. if i==len(spawnTimes)-1 then this would be the last itteration of the for loop regardless
 
-
             #Wait for node to spawn again:
             sleepTime = timeUntilInEorzea(int(spawnTimes[nextTimeIndex][:2]))
             print(f"Node: {key}, nextTimeIndex: {nextTimeIndex}, sleep for: {sleepTime}")
             await asyncio.sleep(sleepTime)
+
 
     def beginGatherAlerts(self):
         """
@@ -98,6 +97,8 @@ class NotificationsProvider:
             loop.run_until_complete(asyncio.gather(*functions))
         finally:
             loop.close()
+
+
 
 if __name__ == "__main__":
     """

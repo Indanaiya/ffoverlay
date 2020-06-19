@@ -2,7 +2,7 @@ import configparser
 import os
 
 configAddress = "../config/config.ini"
-defaults = {'size':'standard'}
+defaults = {'size':'standard', 'datacenter':'Chaos'}
 acceptedValues = {'size': ['standard', 'large']}
 
 def generateConfig():
