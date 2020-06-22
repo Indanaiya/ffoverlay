@@ -3,7 +3,7 @@ import os
 
 configAddress = "../config/config.ini"
 defaults = {'size':'standard', 'datacenter':'Chaos'}
-acceptedValues = {'size': ['standard', 'large']}
+acceptedValues = {'size': ['standard', 'large'], 'datacenter':['Chaos','Light','Aether','Primal','Crystal','Elemental','Gaia','Mana']}
 
 def generateConfig():
     parser = configparser.ConfigParser()
@@ -13,15 +13,22 @@ def generateConfig():
 
 def getConfig():
     if not os.path.isfile(configAddress):
+        print("Config file not found. Writing.")
         generateConfig()
     parser = configparser.ConfigParser()
     parser.read(configAddress)
+    #Getting all the keys in the ini
+    parsedKeys = []
+    for x,y in parser.items('general'):
+        parsedKeys.append(x)
+
     #Checks that all expected options are found in config.ini, rewrites the file if not:
-    if not all(x in parser._sections.keys() for x in defaults.keys()):
+    if not all(x in parsedKeys for y in defaults.keys()):
+        print("Not all expected keys found. Rewriting config.")
         generateConfig()
         parser = configparser.ConfigParser()
         parser.read(configAddress)
-        
+
     return parser._sections
 
 def updateValue(key, value):
