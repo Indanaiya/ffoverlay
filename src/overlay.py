@@ -7,10 +7,12 @@ from load_configuration import *
 
 presets = {'size':{'standard':
                         {'mainButton': '../res/black_dot_16.png',
-                        'font-size': 11},
+                        'font-size': 11,
+                        'optionsPanelHeight': 16},
                     'large':
                         {'mainButton': '../res/black_dot_32.png',
-                        'font-size': 16}
+                        'font-size': 16,
+                        'optionsPanelHeight': 32}
                     },
             'datacenter': { 'Chaos': {'region': 'EU'},
                             'Light': {'region': 'EU'},
@@ -47,10 +49,13 @@ class Settings():
     def __init__(self, main):
         self.main=main
 
-    def destroyed(self, event):
+    def destroyed(self, event): #Does not save the settings
         self.main.root.wm_attributes("-disabled", False)#Makes the main window interactable again
 
     def showSettings(self, event):
+        def printSize():
+            print(self.size.get())
+
         print("Settings button pressed.")
         self.main.root.wm_attributes("-disabled", True)#Makes the main window uninteractable
         self.root = tk.Tk()
@@ -58,14 +63,35 @@ class Settings():
         self.root.bind("<Destroy>", self.destroyed)
 
         #Size selector:
-        self.size = tk.StringVar(self.root)
-        self.size.set(self.main.size)
+        self.size = tk.StringVar(self.root) #Stores the string that sizeSelector is. Accessed with self.size.get()
+        self.size.set(self.main.size) #Sets the default for the sizeSelector
         self.sizeLabel = tk.Label(self.root, text="Size: ")
         self.sizeLabel.grid(row=0, column=0)
         self.sizeSelector = tk.OptionMenu(self.root, self.size, *[size for size in presets['size'].keys()])
         self.sizeSelector.grid(row=0, column=1)
 
+        #Datacenter selector:
+        self.datacenter = tk.StringVar(self.root)
+        self.datacenter.set(getConfig()['general']['datacenter'])
+        self.datacenterLabel = tk.Label(self.root, text="Datacenter: ")
+        self.datacenterLabel.grid(row=1, column=0)
+        self.datacenterSelector = tk.OptionMenu(self.root, self.datacenter, *[datacenter for datacenter in presets['datacenter'].keys()])
+        self.datacenterSelector.grid(row=1, column=1)
+
+
+        #Submit button:
+        self.submit = tk.Button(self.root, text="Save Changes", command=self.saveSettings)
+        self.submit.grid(row=2, column=1)
+        self.submit.bind('<Button-1>')
+
         self.root.mainloop()
+
+    def saveSettings(self):
+        updateValue('size', self.size.get())
+        print(f"Updated size to {self.size.get()}")
+        updateValue('datacenter', self.datacenter.get())
+        print(f"Updated datacenter to {self.datacenter.get()}")
+        self.root.destroy()
 
 #Transparency will only work on windows
 class App():
@@ -87,7 +113,7 @@ class App():
         self.settings = Settings(self)
         self.settingsButton = tk.Label(self.root, image=self.image2)
         self.settingsButton.bind('<Button-1>', self.settings.showSettings)
-        self.optionsPanel = OptionsPanel(self.root, [self.settingsButton], bg="white")
+        self.optionsPanel = OptionsPanel(self.root, [self.settingsButton], bg="white", height=presets['size'][self.size]['optionsPanelHeight'])
         self.optionsPanel.grid(row=0, column=2, rowspan=2)
         self.optionsPanelRemoved = True
 
@@ -138,16 +164,22 @@ class App():
         self.gatherableLabels[key].destroy()
         self.gatherableLabels.pop(key)
 
+class Main():
+    def start(self):
+        self.configValues = getConfig()
+        self.notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{self.configValues['general']['datacenter']}/", self.showSpawnLabel, self.removeSpawnLabel)
+        self.notificationsProviderThread = threading.Thread(target = self.notificationsProvider.beginGatherAlerts)
+        self.app = App(size=self.configValues['general']['size'])
+        self.notificationsProviderThread.start()
+        self.app.root.mainloop()
+
+    async def showSpawnLabel(self, name=None, price=None):
+        await self.app.addGatherableLabel((name, tk.Label(self.app.root, text=f"{name} | {price}gil", font=('Helvetica', presets['size'][self.app.size]['font-size']))))
+
+    async def removeSpawnLabel(self, name=None):
+        await self.app.removeGatherableLabel(name)
+
+
 if __name__ == "__main__":
-    async def showSpawnLabel(name=None, price=None):
-        await app.addGatherableLabel((name, tk.Label(app.root, text=f"{name} | {price}gil", font=('Helvetica', presets['size'][app.size]['font-size']))))
-
-    async def removeSpawnLabel(name=None):
-        await app.removeGatherableLabel(name)
-
-    configValues = getConfig()
-    notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{configValues['general']['datacenter']}/", showSpawnLabel, removeSpawnLabel)
-    notificationsProviderThread = threading.Thread(target = notificationsProvider.beginGatherAlerts)
-    app = App(size=configValues['general']['size'])
-    notificationsProviderThread.start()
-    app.root.mainloop()
+    main = Main()
+    main.start()
