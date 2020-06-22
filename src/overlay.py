@@ -5,7 +5,6 @@ import asyncio
 from notifications_provider import NotificationsProvider
 from load_configuration import *
 
-
 presets = {'size':{'standard':
                         {'mainButton': '../res/black_dot_16.png',
                         'font-size': 11},
@@ -89,7 +88,7 @@ class App():
         self.settingsButton = tk.Label(self.root, image=self.image2)
         self.settingsButton.bind('<Button-1>', self.settings.showSettings)
         self.optionsPanel = OptionsPanel(self.root, [self.settingsButton], bg="white")
-        self.optionsPanel.grid(row=0, column=1, rowspan=2)
+        self.optionsPanel.grid(row=0, column=2, rowspan=2)
         self.optionsPanelRemoved = True
 
         #Main button:

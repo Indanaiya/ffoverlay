@@ -5,6 +5,7 @@ import threading
 import time
 import inspect
 from eorzea_time import getEorzeaTime, timeUntilInEorzea, getEorzeaTimeDecimal
+import logging
 
 class NotificationsProvider:
     """
@@ -40,7 +41,6 @@ class NotificationsProvider:
                     print(f"Unable to get data from Universalis for {key}: {repr(err)}\n")
             return gatheredItemsData, marketData
 
-
     async def gatherAlert(self, key, getTime=getEorzeaTimeDecimal):
         """
         Executes the self.spawnCallback coroutine when the node named 'key' spawns
@@ -57,7 +57,11 @@ class NotificationsProvider:
             name = valuesData[key]['name']
             spawnTimes = valuesData[key]['spawnTimes']
             for i in range(len(spawnTimes)):
-                print(f"Node: {key}, i: {i}, spawnTimes[i][:2]: {spawnTimes[i][:2]}")
+                logging.info(f"Node: {key}, i: {i}, spawnTimes[i][:2]: {spawnTimes[i][:2]}")
+                logging.info("Evaluating:")
+                logging.info(f"eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']")
+                logging.info(f"{eorzeaHours} >= {int(spawnTimes[i][:2])} and {eorzeaHours} < {int(spawnTimes[i][:2])}+{valuesData[key]['lifespan']}")
+                logging.info(f"{eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']}")
                 if eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']: #Means the node is up
                     #print(f"Function says New node spawn[{eorzeaHours}]: {valuesData[key]['name']}  {price}gil per unit")
                     currentTimeIndex = i
@@ -73,12 +77,11 @@ class NotificationsProvider:
                     await self.despawnCallback(name=name)
 
                     break
-                elif eorzeaHours < int(spawnTimes[i][:2]):
-                    nextTimeIndex = i
-                    break
                 elif i == len(spawnTimes) - 1:#eorzeaHours > int(spawnTimes[i][:2]) is implied by reaching this point
                     nextTimeIndex = 0
                     break #Break here is just for clarity. if i==len(spawnTimes)-1 then this would be the last itteration of the for loop regardless
+                elif eorzeaHours < int(spawnTimes[i][:2]):
+                    nextTimeIndex = i
 
             #Wait for node to spawn again:
             sleepTime = timeUntilInEorzea(int(spawnTimes[nextTimeIndex][:2]))
