@@ -5,7 +5,6 @@ import threading
 import time
 import inspect
 from eorzea_time import getEorzeaTime, timeUntilInEorzea, getEorzeaTimeDecimal
-import logging
 
 class NotificationsProvider:
     """
@@ -57,21 +56,18 @@ class NotificationsProvider:
             name = valuesData[key]['name']
             spawnTimes = valuesData[key]['spawnTimes']
             for i in range(len(spawnTimes)):
-                logging.info(f"Node: {key}, i: {i}, spawnTimes[i][:2]: {spawnTimes[i][:2]}")
-                logging.info("Evaluating:")
-                logging.info(f"eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']")
-                logging.info(f"{eorzeaHours} >= {int(spawnTimes[i][:2])} and {eorzeaHours} < {int(spawnTimes[i][:2])}+{valuesData[key]['lifespan']}")
-                logging.info(f"{eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']}")
                 if eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']: #Means the node is up
                     #print(f"Function says New node spawn[{eorzeaHours}]: {valuesData[key]['name']}  {price}gil per unit")
                     currentTimeIndex = i
                     nextTimeIndex = (i+1, 0)[i==len(spawnTimes)-1]
 
+                    spawnTime = spawnTimes[currentTimeIndex][:2]
+                    despawnTime = int(spawnTimes[currentTimeIndex][:2]) + self.gatheredItemsData[key]['lifespan']
+
                     #Notification for spawn:
-                    await self.spawnCallback(name=name, price=price)
+                    await self.spawnCallback(name=name, price=price, itemValues=valuesData[key], spawnTime=spawnTime, despawnTime=despawnTime, marketData = self.marketData[key])
 
                     #Notification for despawn:
-                    despawnTime = int(spawnTimes[currentTimeIndex][:2]) + self.gatheredItemsData[key]['lifespan']
                     sleepTime = timeUntilInEorzea((despawnTime, despawnTime-24)[despawnTime>=24])#Ternary is to loop back around from 24 to 00 (of the next day)
                     await asyncio.sleep(sleepTime)
                     await self.despawnCallback(name=name)
