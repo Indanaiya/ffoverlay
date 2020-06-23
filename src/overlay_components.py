@@ -38,7 +38,8 @@ class OptionsPanel(tk.Label):#Could this be replaced with a frame?
 
     def show(self):
         for i in range(len(self.labels)):
-            self.labels[i].grid(row=0, column=i)
+            self.labels[i].grid(row=0, column=i+1, sticky="w")
+
 
 class InspectableLabel(tk.Label):
     def __init__(self, app, inspectPanel, **kwargs):
@@ -64,14 +65,14 @@ class Settings():
         self.config = getConfig()
 
     def destroyed(self, event): #Does not save the settings
-        self.app.root.wm_attributes("-disabled", False)#Makes the main window interactable again
+        self.app.window.wm_attributes("-disabled", False)#Makes the main window interactable again
 
     def showSettings(self, event):
         def printSize():
             print(self.size.get())
 
         print("Settings button pressed.")
-        self.app.root.wm_attributes("-disabled", True)#Makes the main window uninteractable
+        self.app.window.wm_attributes("-disabled", True)#Makes the main window uninteractable
         self.root = tk.Tk()
         self.root.title("Settings")
         self.root.geometry('175x200')

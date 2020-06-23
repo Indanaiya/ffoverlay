@@ -18,12 +18,16 @@ class App():
 
         self.inspector = None
 
-        #Root:
-        self.root = tk.Tk()
-        self.root.configure(background="white")
-        self.root.overrideredirect(True) #Makes the window borderless
-        self.root.wm_attributes("-topmost", True) #Window is always on top
-        self.root.wm_attributes("-transparentcolor", "white") #Where there was once white there is now transparency
+        #Root window:
+        self.window = tk.Tk()
+        self.window.configure(background="white")
+        self.window.overrideredirect(True) #Makes the window borderless
+        self.window.wm_attributes("-topmost", True) #Window is always on top
+        self.window.wm_attributes("-transparentcolor", "white") #Where there was once white there is now transparency
+
+        #Primary display frame
+        self.root = tk.Frame(self.window, bg='white')
+        self.root.grid(sticky='nw')
 
         #Options Panel
         self.image2 = tk.PhotoImage(file='../res/black_dot_32.png') #Temporary
@@ -64,7 +68,7 @@ class App():
         self.hideInspector()
         print("Showing: " + str(label))
         self.inspector = label
-        self.inspector.grid(row=0, rowspan=4, column=2)
+        self.inspector.grid(row=0, column=1)
 
     def hideInspector(self):
         try:
@@ -111,7 +115,7 @@ class Main():
 
     async def showSpawnLabel(self, name=None, price=None, itemValues=None, spawnTime=None, despawnTime=None, marketData=None):
         bgInspectPanel = '#6F7066'
-        inspectPanel = tk.Frame(self.app.root, bg=bgInspectPanel)
+        inspectPanel = tk.Frame(self.app.window, bg=bgInspectPanel)
         gridNumber = 0
 
         if itemValues:
