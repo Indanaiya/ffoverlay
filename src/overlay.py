@@ -4,97 +4,9 @@ import time
 import asyncio
 from notifications_provider import NotificationsProvider
 from load_configuration import *
+from overlay_components import *
 
-presets = {'size':{'standard':
-                        {'mainButton': '../res/black_dot_16.png',
-                        'font-size': 11,
-                        'optionsPanelHeight': 16},
-                    'large':
-                        {'mainButton': '../res/black_dot_32.png',
-                        'font-size': 16,
-                        'optionsPanelHeight': 32}
-                    },
-            'datacenter': { 'Chaos': {'region': 'EU'},
-                            'Light': {'region': 'EU'},
-                            'Aether': {'region': 'NA'},
-                            'Primal': {'region': 'NA'},
-                            'Crystal': {'region': 'NA'},
-                            'Elemental': {'region': 'JP'},
-                            'Gaia': {'region': 'JP'},
-                            'Mana': {'region': 'JP'}
-                    }
-            }
-
-gatheredItemsLocation = '../res/values.json'
-universalisUrl = "https://universalis.app/api/"
-
-class OptionsPanel(tk.Label):
-    def __init__(self, root, labels: [], bg='white', height=16):
-        super().__init__(root, bg=bg)
-        self.labels = labels #I should add checking here maybe
-        self.height = height
-        for label in self.labels:
-            label.config(height=height)
-
-    def hide(self):
-        for l in self.labels:
-            l.grid_remove()
-
-    def show(self):
-        for i in range(len(self.labels)):
-            self.labels[i].grid(row=0, column=i)
-
-#Settings window
-class Settings():
-    def __init__(self, app, main=None):
-        self.app=app
-        self.main = main
-
-    def destroyed(self, event): #Does not save the settings
-        self.app.root.wm_attributes("-disabled", False)#Makes the main window interactable again
-
-    def showSettings(self, event):
-        def printSize():
-            print(self.size.get())
-
-        print("Settings button pressed.")
-        self.app.root.wm_attributes("-disabled", True)#Makes the main window uninteractable
-        self.root = tk.Tk()
-        self.root.geometry('250x500')
-        self.root.bind("<Destroy>", self.destroyed)
-
-        #Size selector:
-        self.size = tk.StringVar(self.root) #Stores the string that sizeSelector is. Accessed with self.size.get()
-        self.size.set(self.app.size) #Sets the default for the sizeSelector
-        self.sizeLabel = tk.Label(self.root, text="Size: ")
-        self.sizeLabel.grid(row=0, column=0)
-        self.sizeSelector = tk.OptionMenu(self.root, self.size, *[size for size in presets['size'].keys()])
-        self.sizeSelector.grid(row=0, column=1)
-
-        #Datacenter selector:
-        self.datacenter = tk.StringVar(self.root)
-        self.datacenter.set(getConfig()['general']['datacenter'])
-        self.datacenterLabel = tk.Label(self.root, text="Datacenter: ")
-        self.datacenterLabel.grid(row=1, column=0)
-        self.datacenterSelector = tk.OptionMenu(self.root, self.datacenter, *[datacenter for datacenter in presets['datacenter'].keys()])
-        self.datacenterSelector.grid(row=1, column=1)
-
-
-        #Submit button:
-        self.submit = tk.Button(self.root, text="Save Changes", command=self.saveSettings)
-        self.submit.grid(row=2, column=1)
-        self.submit.bind('<Button-1>')
-
-        self.root.mainloop()
-
-    def saveSettings(self):
-        updateValue('size', self.size.get())
-        print(f"Updated size to {self.size.get()}")
-        updateValue('datacenter', self.datacenter.get())
-        print(f"Updated datacenter to {self.datacenter.get()}")
-        self.root.destroy()
-        if self.main:
-            self.main.restart()
+fgColor = '#FEFEFE'
 
 #Transparency will only work on windows
 class App():
@@ -103,6 +15,8 @@ class App():
             raise ValueError(f"Did not recognise size: {size}. Expected one of: {presets['size'].keys()}")
         else:
             self.size = size #Need this so value can be accessed outside of class
+
+        self.inspector = None
 
         #Root:
         self.root = tk.Tk()
@@ -146,6 +60,21 @@ class App():
             self.optionsPanelRemoved = True
             self.optionsPanel.hide()
 
+    def showInspector(self, label:tk.Frame):
+        self.hideInspector()
+        print("Showing: " + str(label))
+        self.inspector = label
+        self.inspector.grid(row=0, rowspan=4, column=2)
+
+    def hideInspector(self):
+        try:
+            self.inspector.grid_remove()
+            self.inspector = None
+        except AttributeError as e:#If self.inspector does not exist or has already been destroyed it will be None
+            print("Unable to destroy inspector")
+            if self.inspector is not None:
+                raise
+
     def setGatherableLabels(self, *args:(str, tk.Label)):
         self.gatherableLabels = {k:v for k,v in args}
         print(self.gatherableLabels)
@@ -154,7 +83,7 @@ class App():
     def redrawGatherableLabels(self):
         i = 2
         for l in self.gatherableLabels.values():
-            l.grid(row=i, columnspan=2, sticky='w')
+            l.grid(row=i, columnspan=2, sticky='nw')
             i+=1
 
     async def addGatherableLabel(self, keyLabelPair:(str, tk.Label)):
@@ -180,8 +109,30 @@ class Main():
         self.app.root.destroy()
         self.start()
 
-    async def showSpawnLabel(self, name=None, price=None):
-        await self.app.addGatherableLabel((name, tk.Label(self.app.root, text=f"{name} | {price}gil", font=('Helvetica', presets['size'][self.app.size]['font-size']))))
+    async def showSpawnLabel(self, name=None, price=None, itemValues=None, spawnTime=None, despawnTime=None, marketData=None):
+        bgInspectPanel = '#6F7066'
+        inspectPanel = tk.Frame(self.app.root, bg=bgInspectPanel)
+        gridNumber = 0
+
+        if itemValues:
+            locationLabel = tk.Label(inspectPanel, fg=fgColor, bg=bgInspectPanel, text=f"Location: {itemValues['map']} ({itemValues['x']}, {itemValues['y']})")
+            locationLabel.grid(row=gridNumber, sticky='w')
+            gridNumber+=1
+
+        if spawnTime:
+            spawnTimeLabel = tk.Label(inspectPanel, fg=fgColor, bg=bgInspectPanel, text=f"Spawn Time: {spawnTime}:00")#Will need changing if something ever spawns not on the hour
+            spawnTimeLabel.grid(row=gridNumber, sticky='w')
+            gridNumber+=1
+
+        if despawnTime:
+            despawnTimeLabel = tk.Label(inspectPanel, fg=fgColor, bg=bgInspectPanel, text=f"Despawn Time: {despawnTime}:00")
+            despawnTimeLabel.grid(row=gridNumber, sticky='w')
+            gridNumber+=1
+
+        # priceOnEachServerAndLastUpdateTime
+        # buttonToOpenInGamerescape
+        label = InspectableLabel(self.app, inspectPanel, text=f"{name} | {price}gil", font=('Helvetica', presets['size'][self.app.size]['font-size']), bg='#565356', fg='#FEFEFE')
+        await self.app.addGatherableLabel((name, label))
 
     async def removeSpawnLabel(self, name=None):
         await self.app.removeGatherableLabel(name)
