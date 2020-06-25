@@ -30,22 +30,28 @@ class App():
         self.root.grid(sticky='nw')
 
         #Options Panel
-        self.image2 = tk.PhotoImage(file='../res/black_dot_32.png') #Temporary
+        self.optionsLabels = []
+        self.togglePanelButtonImage = tk.PhotoImage(file=presets['size'][self.size]['mainButton'])
+        self.settingsButtonImage = tk.PhotoImage(file='../res/black_dot_32.png') #Temporary
         self.settings = Settings(self, main=main)
-        self.settingsButton = tk.Label(self.root, image=self.image2)
-        self.settingsButton.bind('<Button-1>', self.settings.showSettings)
-        self.optionsPanel = OptionsPanel(self.root, [self.settingsButton], bg="white", height=presets['size'][self.size]['optionsPanelHeight'])
-        self.optionsPanel.grid(row=0, column=2, rowspan=2)
+        self.optionsPanel = tk.Frame(self.root, bg='white')
+        self.optionsPanel.grid(row=0, column=0, sticky='nw')
         self.optionsPanelRemoved = True
 
-        #Main button:
-        self.image = tk.PhotoImage(file=presets['size'][self.size]['mainButton'])
-        self.mainLabel = tk.Label(self.root, image=self.image, bg='white', borderwidth=0)
-        self.mainLabel.grid(row=0, column=0, sticky='nw')
-        self.mainLabel.bind('<Button-1>', self.click)
-        self.mainLabel.bind('<Enter>', self.hover)
-        self.mainLabel.bind('<Leave>', self.unhover)
-        self.optionsLabels = {}
+        self.togglePanelButton = tk.Label(self.optionsPanel, image=self.togglePanelButtonImage, bg='white', borderwidth=0)
+        self.togglePanelButton.grid(row=0, column=0, sticky='nw')
+        self.togglePanelButton.bind('<Button-1>', self.click)
+        self.togglePanelButton.bind('<Enter>', self.hover)
+        self.togglePanelButton.bind('<Leave>', self.unhover)
+        self.togglePanelButtonPadding = tk.Label(self.optionsPanel, height=1, font=('Helvetica', 8), bg='white')
+        self.togglePanelButtonPadding.grid(row=1, column=0)
+
+        self.settingsButton = tk.Label(self.optionsPanel, image=self.settingsButtonImage)
+        self.settingsButton.bind('<Button-1>', self.settings.showSettings)
+        self.optionsLabels.append(self.settingsButton)
+        self.settingsButton.grid(row=0, column=1, rowspan=2, sticky='w')
+        self.settingsButton.grid_remove()
+
         self.gatherableLabels = {}
 
     def hover(self, event):
@@ -59,10 +65,12 @@ class App():
     def click(self, event):
         if self.optionsPanelRemoved:
             self.optionsPanelRemoved = False
-            self.optionsPanel.show()
+            for i in range(len(self.optionsLabels)):
+                self.optionsLabels[i].grid(row=0,column=i+1)
         else:
             self.optionsPanelRemoved = True
-            self.optionsPanel.hide()
+            for l in self.optionsLabels:
+                l.grid_remove()
 
     def showInspector(self, label:tk.Frame):
         self.hideInspector()
@@ -87,7 +95,7 @@ class App():
     def redrawGatherableLabels(self):
         i = 2
         for l in self.gatherableLabels.values():
-            l.grid(row=i, columnspan=2, sticky='nw')
+            l.grid(row=i, column=0, columnspan=10, sticky='nw')
             i+=1
 
     async def addGatherableLabel(self, keyLabelPair:(str, tk.Label)):
@@ -110,7 +118,7 @@ class Main():
         self.app.root.mainloop()
 
     def restart(self):
-        self.app.root.destroy()
+        self.app.window.destroy()
         self.start()
 
     async def showSpawnLabel(self, name=None, price=None, itemValues=None, spawnTime=None, despawnTime=None, marketData=None):

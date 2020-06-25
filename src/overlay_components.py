@@ -24,23 +24,6 @@ presets = {'size':{'standard':
 gatheredItemsLocation = '../res/values.json'
 universalisUrl = "https://universalis.app/api/"
 
-class OptionsPanel(tk.Label):#Could this be replaced with a frame?
-    def __init__(self, root, labels: [], bg='white', height=16):
-        super().__init__(root, bg=bg)
-        self.labels = labels #I should add checking here maybe
-        self.height = height
-        for label in self.labels:
-            label.config(height=height)
-
-    def hide(self):
-        for l in self.labels:
-            l.grid_remove()
-
-    def show(self):
-        for i in range(len(self.labels)):
-            self.labels[i].grid(row=0, column=i+1, sticky="w")
-
-
 class InspectableLabel(tk.Label):
     def __init__(self, app, inspectPanel, **kwargs):
         super().__init__(app.root, kwargs)
