@@ -12,7 +12,6 @@ fgColor = '#FEFEFE'
 class App():
     def __init__(self, size='standard', main=None):
         self.inspector = None
-        self.gatherableLabels = {}
         self.setupWindow(size=size, main=main)
 
     def setupWindow(self, size='standard', main=None):
@@ -20,6 +19,8 @@ class App():
             raise ValueError(f"Did not recognise size: {size}. Expected one of: {presets['size'].keys()}")
         else:
             self.size = size #Need this so value can be accessed outside of class
+      
+        self.gatherableLabels = {}
 
         #Root window:
         self.window = tk.Tk()
@@ -54,11 +55,6 @@ class App():
         self.optionsLabels.append(self.settingsButton)
         self.settingsButton.grid(row=0, column=1, rowspan=2, sticky='w')
         self.settingsButton.grid_remove()
-
-        if len(self.gatherableLabels):
-            main.redrawLabels()
-
-
 
     def hover(self, event):
         print("Main button moused over")
@@ -130,10 +126,11 @@ class Main():
             pass#TODO
         if newConfigValues['general']['size'] != self.configValues['general']['size']:
             self.app.window.destroy()
-            self.app.setupWindow(size=newConfigValues['general']['size'], main=self)
+            self.configValues['general']['size'] = newConfigValues['general']['size']
+            self.app.setupWindow(size=self.configValues['general']['size'], main=self)
+            self.redrawLabels()
             self.app.root.mainloop()
 
-        self.configValues = newConfigValues
 
     def getApp(self):
         return self.app
