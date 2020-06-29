@@ -17,7 +17,6 @@ class NotificationsProvider:
             raise ValueError("Expected name parameter in despawnCallback.")
         if not inspect.iscoroutinefunction(spawnCallback) or not inspect.iscoroutinefunction(despawnCallback):
             raise ValueError("spawnCallback and despawnCallback must both be coroutines.")
-
         self.gatheredItemsData, self.marketData = self.getData(gatheredItemsLocation, marketDataAddress)
         self.spawnCallback = spawnCallback
         self.despawnCallback = despawnCallback
@@ -39,6 +38,7 @@ class NotificationsProvider:
                 except requests.exceptions.RequestException as err:
                     print(f"Unable to get data from Universalis for {key}: {repr(err)}\n")
             return gatheredItemsData, marketData
+
 
     async def gatherAlert(self, key, getTime=getEorzeaTimeDecimal):
         """

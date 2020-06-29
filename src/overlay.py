@@ -11,12 +11,15 @@ fgColor = '#FEFEFE'
 #Transparency will only work on windows
 class App():
     def __init__(self, size='standard', main=None):
+        self.inspector = None
+        self.gatherableLabels = {}
+        self.setupWindow(size=size, main=main)
+
+    def setupWindow(self, size='standard', main=None):
         if not size in presets['size'].keys():
             raise ValueError(f"Did not recognise size: {size}. Expected one of: {presets['size'].keys()}")
         else:
             self.size = size #Need this so value can be accessed outside of class
-
-        self.inspector = None
 
         #Root window:
         self.window = tk.Tk()
@@ -52,7 +55,10 @@ class App():
         self.settingsButton.grid(row=0, column=1, rowspan=2, sticky='w')
         self.settingsButton.grid_remove()
 
-        self.gatherableLabels = {}
+        if len(self.gatherableLabels):
+            main.redrawLabels()
+
+
 
     def hover(self, event):
         print("Main button moused over")
@@ -110,45 +116,68 @@ class App():
 
 class Main():
     def start(self):
+        self.spawnLabels = {}
         self.configValues = getConfig()
-        self.notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{self.configValues['general']['datacenter']}/", self.showSpawnLabel, self.removeSpawnLabel)
-        self.notificationsProviderThread = threading.Thread(target = self.notificationsProvider.beginGatherAlerts)
+        self.notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{self.configValues['general']['datacenter']}/", self.addSpawnLabel, self.removeSpawnLabel)
+        self.gatherAlertsThread = threading.Thread(target = self.notificationsProvider.beginGatherAlerts)
         self.app = App(size=self.configValues['general']['size'], main=self)
-        self.notificationsProviderThread.start()
+        self.gatherAlertsThread.start()
         self.app.root.mainloop()
 
     def restart(self):
+        newConfigValues = getConfig()
+        if newConfigValues['general']['datacenter'] != self.configValues['general']['datacenter']:
+            pass
+        self.configValues = newConfigValues
+        oldGatherableLabels = self.app.gatherableLabels
+
         self.app.window.destroy()
-        self.start()
+        self.app.setupWindow(size=self.configValues['general']['size'], main=self)
+        self.app.root.mainloop()
 
-    async def showSpawnLabel(self, name=None, price=None, itemValues=None, spawnTime=None, despawnTime=None, marketData=None):
-        bgInspectPanel = '#6F7066'
-        inspectPanel = tk.Frame(self.app.window, bg=bgInspectPanel)
-        gridNumber = 0
+    def getApp(self):
+        return self.app
 
-        if itemValues:
-            locationLabel = tk.Label(inspectPanel, fg=fgColor, bg=bgInspectPanel, text=f"Location: {itemValues['map']} ({itemValues['x']}, {itemValues['y']})")
+    async def addSpawnLabel(self, name=None, price=None, itemValues=None, spawnTime=None, despawnTime=None, marketData=None):
+        self.spawnLabels[name] = {'price':price,'itemValues':itemValues,'spawnTime':spawnTime,'despawnTime':despawnTime,'marketData':marketData}
+        await self.showSpawnLabel(name)
+
+    async def showSpawnLabel(self, name):
+        bgInspectPanel = '#6F7066'#Background colour for the Inspect Panel
+        app = self.getApp()#get method so the variable can change each time the this method is called
+        itemInfo = self.spawnLabels[name]
+        self.inspectPanel = tk.Frame(app.window, bg=bgInspectPanel)#self so it can be used by another method to redraw the spawn labels on restart
+        gridNumber = 0 #Iterator for column Number
+
+        if itemInfo['itemValues']:
+            locationLabel = tk.Label(self.inspectPanel, fg=fgColor, bg=bgInspectPanel, text=f"Location: {itemInfo['itemValues']['map']} ({itemInfo['itemValues']['x']}, {itemInfo['itemValues']['y']})")
             locationLabel.grid(row=gridNumber, sticky='w')
             gridNumber+=1
 
-        if spawnTime:
-            spawnTimeLabel = tk.Label(inspectPanel, fg=fgColor, bg=bgInspectPanel, text=f"Spawn Time: {spawnTime}:00")#Will need changing if something ever spawns not on the hour
+        if itemInfo['spawnTime']:
+            spawnTimeLabel = tk.Label(self.inspectPanel, fg=fgColor, bg=bgInspectPanel, text=f"Spawn Time: {itemInfo['spawnTime']}:00")#Will need changing if something ever spawns not on the hour
             spawnTimeLabel.grid(row=gridNumber, sticky='w')
             gridNumber+=1
 
-        if despawnTime:
-            despawnTimeLabel = tk.Label(inspectPanel, fg=fgColor, bg=bgInspectPanel, text=f"Despawn Time: {despawnTime}:00")
+        if itemInfo['despawnTime']:
+            despawnTimeLabel = tk.Label(self.inspectPanel, fg=fgColor, bg=bgInspectPanel, text=f"Despawn Time: {itemInfo['despawnTime']}:00")
             despawnTimeLabel.grid(row=gridNumber, sticky='w')
             gridNumber+=1
 
         # priceOnEachServerAndLastUpdateTime
         # buttonToOpenInGamerescape
-        label = InspectableLabel(self.app, inspectPanel, text=f"{name} | {price}gil", font=('Helvetica', presets['size'][self.app.size]['font-size']), bg='#565356', fg='#FEFEFE')
-        await self.app.addGatherableLabel((name, label))
+        label = InspectableLabel(app, self.inspectPanel, text=f"{name} | {itemInfo['price']}gil", font=('Helvetica', presets['size'][self.app.size]['font-size']), bg='#565356', fg=fgColor)
+        await app.addGatherableLabel((name, label))
 
     async def removeSpawnLabel(self, name=None):
-        await self.app.removeGatherableLabel(name)
+        self.spawnLabels.pop(name)
+        await self.getApp().removeGatherableLabel(name)
 
+    def redrawLabels(self):
+        async def redrawLabelsCoroutine():
+            for key in self.spawnLabels.keys():
+                await self.showSpawnLabel(key)
+        asyncio.run(redrawLabelsCoroutine())
 
 if __name__ == "__main__":
     main = Main()
