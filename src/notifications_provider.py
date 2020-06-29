@@ -20,13 +20,14 @@ class NotificationsProvider:
         self.gatheredItemsData, self.marketData = self.getData(gatheredItemsLocation, marketDataAddress)
         self.spawnCallback = spawnCallback
         self.despawnCallback = despawnCallback
+        self.stop = False
 
 
     def getData(self, gatheredItemsLocation, marketDataAddress):
         """
         Gets data both from Universalis, and from gathered_items.json
         """
-        with open(gatheredItemsLocation) as file:#Rahter than do this all at the start. I should get the data when needed, and then cache it
+        with open(gatheredItemsLocation) as file:#Rather than do this all at the start. I should get the data when needed, and then cache it
             gatheredItemsData = json.load(file)
             marketData = {}
             for key in list(gatheredItemsData.keys()):
@@ -90,14 +91,23 @@ class NotificationsProvider:
         Starts gatherAlerts for all gatherable items on a new event loop
         """
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
             functions = [self.gatherAlert(key) for key in list(self.gatheredItemsData.keys())]
-            loop.run_until_complete(asyncio.gather(*functions))
+            functions.append(self.checkToStop())
+            print(functions)
+            self.loop.run_until_complete(asyncio.gather(*functions))
         finally:
-            loop.close()
+            self.loop.close()
 
+    async def checkToStop(self):
+        """Stops the asyncio loop for gather alerts"""
+        while not self.stop:
+            await asyncio.sleep(1)
+        self.loop.stop()
 
+    def stopGatherAlerts(self):
+        self.stop = True
 
 if __name__ == "__main__":
     """
