@@ -27,10 +27,9 @@ def timeUntilInEorzea(targetTime):
     Target time is in hours
     """
     #Need error checking to make sure that eorzeaHours is a number between 0 and 24 (not including 24)
-    if targetTime < 0 or targetTime >=24:
+    if targetTime < 0 or targetTime >= 24:
         raise ValueError("targetTime must be a number greater than or equal to 0, and less than 24")
-    localEpoch = time.time()
-    eorzeaHours, eorzeaMinutes = getEorzeaTimeDecimal()
+    eorzeaHours= getEorzeaTimeDecimal()[0]
     if targetTime > eorzeaHours: # target is today
         secondsUntilTarget = (targetTime-eorzeaHours)*175
     elif targetTime < eorzeaHours: #target is tomorrow

@@ -19,7 +19,7 @@ def getConfig():
     parser.read(configAddress)
     #Getting all the keys in the ini
     parsedKeys = []
-    for x,y in parser.items('general'):
+    for x in parser.items('general')[0]:
         parsedKeys.append(x)
 
     #Checks that all expected options are found in config.ini, rewrites the file if not:

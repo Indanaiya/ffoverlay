@@ -3,7 +3,7 @@ import threading
 import time
 import asyncio
 from notifications_provider import NotificationsProvider
-from load_configuration import *
+from load_configuration import getConfig, updateValue
 from overlay_components import *
 
 fgColor = '#FEFEFE'
@@ -91,7 +91,7 @@ class App():
         except AttributeError as e:#If self.inspector does not exist or has already been destroyed it will be None
             print("Unable to destroy inspector")
             if self.inspector is not None:
-                raise
+                raise e
 
     def setGatherableLabels(self, *args:(str, tk.Label)):
         self.gatherableLabels = {k:v for k,v in args}
@@ -127,13 +127,13 @@ class Main():
     def restart(self):
         newConfigValues = getConfig()
         if newConfigValues['general']['datacenter'] != self.configValues['general']['datacenter']:
-            pass
-        self.configValues = newConfigValues
-        oldGatherableLabels = self.app.gatherableLabels
+            pass#TODO
+        if newConfigValues['general']['size'] != self.configValues['general']['size']:
+            self.app.window.destroy()
+            self.app.setupWindow(size=newConfigValues['general']['size'], main=self)
+            self.app.root.mainloop()
 
-        self.app.window.destroy()
-        self.app.setupWindow(size=self.configValues['general']['size'], main=self)
-        self.app.root.mainloop()
+        self.configValues = newConfigValues
 
     def getApp(self):
         return self.app
@@ -164,8 +164,8 @@ class Main():
             despawnTimeLabel.grid(row=gridNumber, sticky='w')
             gridNumber+=1
 
-        # priceOnEachServerAndLastUpdateTime
-        # buttonToOpenInGamerescape
+        #TODO priceOnEachServerAndLastUpdateTime
+        #TODO buttonToOpenInGamerescape
         label = InspectableLabel(app, self.inspectPanel, text=f"{name} | {itemInfo['price']}gil", font=('Helvetica', presets['size'][self.app.size]['font-size']), bg='#565356', fg=fgColor)
         await app.addGatherableLabel((name, label))
 

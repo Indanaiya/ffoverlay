@@ -1,5 +1,5 @@
 import tkinter as tk
-from load_configuration import generateConfig, getConfig, updateValue
+from load_configuration import getConfig, updateValue
 
 presets = {'size':{'standard':
                         {'mainButton': '../res/black_dot_16.png',

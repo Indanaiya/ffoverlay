@@ -50,7 +50,7 @@ class NotificationsProvider:
         valuesData = self.gatheredItemsData
         price = self.marketData[key]['listings'][0]['pricePerUnit']
         while True:
-            eorzeaHours, eorzeaMinutes = getTime()
+            eorzeaHours = getTime()[0]
             currentTimeIndex = 0
             nextTimeIndex = 0
             name = valuesData[key]['name']
