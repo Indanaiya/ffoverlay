@@ -1,5 +1,5 @@
 import tkinter as tk
-from load_configuration import *
+from load_configuration import generateConfig, getConfig, updateValue
 
 presets = {'size':{'standard':
                         {'mainButton': '../res/black_dot_16.png',
@@ -51,9 +51,6 @@ class Settings():
         self.app.window.wm_attributes("-disabled", False)#Makes the main window interactable again
 
     def showSettings(self, event):
-        def printSize():
-            print(self.size.get())
-
         print("Settings button pressed.")
         self.app.window.wm_attributes("-disabled", True)#Makes the main window uninteractable
         self.root = tk.Tk()
