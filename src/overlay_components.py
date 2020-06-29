@@ -29,15 +29,13 @@ class InspectableLabel(tk.Label):
         super().__init__(app.root, kwargs)
         self.app = app
         self.inspectPanel = inspectPanel
-        self.inspectorShown = False
         self.bind('<Button-1>', self.toggleInspector)
 
     def toggleInspector(self, event):
-        if not self.inspectorShown:
+        if not self.app.inspector or self.app.inspector != self.inspectPanel:
             self.app.showInspector(self.inspectPanel)
         else:
             self.app.hideInspector()
-        self.inspectorShown = not self.inspectorShown
 
 
 #Settings window

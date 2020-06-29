@@ -74,7 +74,7 @@ class App():
             for l in self.optionsLabels:
                 l.grid_remove()
 
-    def showInspector(self, label:tk.Frame):
+    def showInspector(self, label):
         self.hideInspector()
         print("Showing: " + str(label))
         self.inspector = label
@@ -85,14 +85,20 @@ class App():
             self.inspector.grid_remove()
             self.inspector = None
         except AttributeError as e:#If self.inspector does not exist or has already been destroyed it will be None
-            print("Unable to destroy inspector")
+            print(f"Unable to destroy inspector: {repr(e)}")
             if self.inspector is not None:
                 raise e
+
 
     def setGatherableLabels(self, *args:(str, tk.Label)):
         self.gatherableLabels = {k:v for k,v in args}
         print(self.gatherableLabels)
         self.redrawGatherableLabels()
+
+    def removeAllGatherableLabels(self):
+        for l in self.gatherableLabels.values():
+            l.destroy()
+        self.gatherableLabels = {}
 
     def redrawGatherableLabels(self):
         i = 2
@@ -121,20 +127,32 @@ class Main():
 
     def restart(self):
         newConfigValues = getConfig()
+        if newConfigValues == self.configValues:
+            return #Don't want to waste time restarting the program if none of the settings changed
+
+        #Don't necessarily need to restart the program if the datacenter changed but the size didn't, but this seems easier to code and it's fast enough
+        self.app.window.destroy()
+        self.configValues['general']['size'] = newConfigValues['general']['size']
+
         if newConfigValues['general']['datacenter'] != self.configValues['general']['datacenter']:
-            pass#TODO
-        if newConfigValues['general']['size'] != self.configValues['general']['size']:
-            self.app.window.destroy()
-            self.configValues['general']['size'] = newConfigValues['general']['size']
-            self.app.setupWindow(size=self.configValues['general']['size'], main=self)
-            asyncio.run(self.redrawLabels())
-            self.app.root.mainloop()
+            self.spawnLabels = {}
+            self.notificationsProvider.stopGatherAlerts()
+            while not self.notificationsProviderThread.isAlive():
+                time.sleep(0.25) #TODO there must be a better way of doing this
+            self.configValues['general']['datacenter'] = newConfigValues['general']['datacenter']
+            self.notificationsProviderThread = threading.Thread(target = self.setupNotificationsProvider)
+            self.notificationsProviderThread.start()
+
+        self.app.setupWindow(size=self.configValues['general']['size'], main=self)
+        asyncio.run(self.redrawLabels())
+        self.app.root.mainloop()
 
     def setupNotificationsProvider(self):
-        notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{self.configValues['general']['datacenter']}/", self.addSpawnLabel, self.removeSpawnLabel)
-        while not self.app: #Don't try to start the gatherAlerts before the app has bene started
+        self.notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{self.configValues['general']['datacenter']}/", self.addSpawnLabel, self.removeSpawnLabel)
+        while not self.app.root: #Don't try to start the gatherAlerts before the app has bene started
             time.sleep(1)
-        notificationsProvider.beginGatherAlerts()
+        self.notificationsProvider.beginGatherAlerts()
+
 
     def getApp(self):
         return self.app
