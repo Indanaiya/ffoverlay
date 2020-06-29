@@ -58,11 +58,11 @@ class App():
 
     def hover(self, event):
         print("Main button moused over")
-        #Will change main button image
+        #TODO Will change main button image
 
     def unhover(self, event):
         print("Mouse moved off of main button")
-        #Will change main button image
+        #TODO Will change main button image
 
     def click(self, event):
         if self.optionsPanelRemoved:
@@ -114,10 +114,9 @@ class Main():
     def start(self):
         self.spawnLabels = {}
         self.configValues = getConfig()
-        self.notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{self.configValues['general']['datacenter']}/", self.addSpawnLabel, self.removeSpawnLabel)
-        self.gatherAlertsThread = threading.Thread(target = self.notificationsProvider.beginGatherAlerts)
         self.app = App(size=self.configValues['general']['size'], main=self)
-        self.gatherAlertsThread.start()
+        self.notificationsProviderThread = threading.Thread(target = self.setupNotificationsProvider) 
+        self.notificationsProviderThread.start()
         self.app.root.mainloop()
 
     def restart(self):
@@ -128,9 +127,14 @@ class Main():
             self.app.window.destroy()
             self.configValues['general']['size'] = newConfigValues['general']['size']
             self.app.setupWindow(size=self.configValues['general']['size'], main=self)
-            self.redrawLabels()
+            asyncio.run(self.redrawLabels())
             self.app.root.mainloop()
 
+    def setupNotificationsProvider(self):
+        notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{self.configValues['general']['datacenter']}/", self.addSpawnLabel, self.removeSpawnLabel)
+        while not self.app: #Don't try to start the gatherAlerts before the app has bene started
+            time.sleep(1)
+        notificationsProvider.beginGatherAlerts()
 
     def getApp(self):
         return self.app
@@ -170,11 +174,9 @@ class Main():
         self.spawnLabels.pop(name)
         await self.getApp().removeGatherableLabel(name)
 
-    def redrawLabels(self):
-        async def redrawLabelsCoroutine():
-            for key in self.spawnLabels.keys():
-                await self.showSpawnLabel(key)
-        asyncio.run(redrawLabelsCoroutine())
+    async def redrawLabels(self):
+        for key in self.spawnLabels.keys():
+            await self.showSpawnLabel(key)
 
 if __name__ == "__main__":
     main = Main()
