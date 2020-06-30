@@ -19,7 +19,7 @@ class App():
         if not size in presets['size'].keys():
             raise ValueError(f"Did not recognise size: {size}. Expected one of: {presets['size'].keys()}")
         else:
-            self.size = size #Need this so value can be accessed outside of class
+            self._size = size 
       
         self.gatherableLabels = {}
 
@@ -36,7 +36,7 @@ class App():
 
         #Options Panel
         self._optionsLabels = []
-        self._togglePanelButtonImage = tk.PhotoImage(file=presets['size'][self.size]['mainButton'])
+        self._togglePanelButtonImage = tk.PhotoImage(file=presets['size'][self._size]['mainButton'])
         self._settingsButtonImage = tk.PhotoImage(file='../res/black_dot_32.png') #TODO Temporary
         self._settings = Settings(self, main=main)
         self._optionsPanel = tk.Frame(self._root, bg='white')
@@ -152,7 +152,7 @@ class App():
 
         #TODO priceOnEachServerAndLastUpdateTime
         #TODO buttonToOpenInGamerescape
-        label = InspectableLabel(self, self._root, inspectPanel, text=f"{name} | {itemInfo['price']}gil", font=('Helvetica', presets['size'][self.size]['font-size']), bg='#565356', fg=fgColor)
+        label = InspectableLabel(self, self._root, inspectPanel, text=f"{name} | {itemInfo['price']}gil", font=('Helvetica', presets['size'][self._size]['font-size']), bg='#565356', fg=fgColor)
         
         self.gatherableLabels[name] = label
         self.redrawGatherableLabels()
