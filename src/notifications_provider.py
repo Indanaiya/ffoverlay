@@ -3,42 +3,67 @@ import json
 import asyncio
 import threading
 import time
+from datetime import datetime, timedelta
 import inspect
+import os
 from eorzea_time import getEorzeaTime, timeUntilInEorzea, getEorzeaTimeDecimal
+
+cachedMarketDataAddress = "../res/chachedMarketData.json"
+universalisUrl = "https://universalis.app/api/"
 
 class NotificationsProvider:
     """
     A class to provide notifications when a new gathering item becomes available to gather
     """
-    def __init__(self, gatheredItemsLocation, marketDataAddress, spawnCallback, despawnCallback):
+    def __init__(self, gatheredItemsLocation, datacenter, spawnCallback, despawnCallback):
         if not 'name' in spawnCallback.__code__.co_varnames and not 'price' in spawnCallback.__code__.co_varnames:
             raise ValueError("Expected name and price parameters in spawnCallback.")
         if not 'name' in despawnCallback.__code__.co_varnames:
             raise ValueError("Expected name parameter in despawnCallback.")
         if not inspect.iscoroutinefunction(spawnCallback) or not inspect.iscoroutinefunction(despawnCallback):
             raise ValueError("spawnCallback and despawnCallback must both be coroutines.")
-        self.gatheredItemsData, self.marketData = self.getData(gatheredItemsLocation, marketDataAddress)
+        self.gatheredItemsData, self.marketData = self.getData(gatheredItemsLocation, datacenter)
         self.spawnCallback = spawnCallback
         self.despawnCallback = despawnCallback
         self.stop = False
+        
 
 
-    def getData(self, gatheredItemsLocation, marketDataAddress):
+    def getData(self, gatheredItemsLocation, datacenter):
         """
-        Gets data both from Universalis, and from gathered_items.json
+        Gets data both from Universalis or cache, and from gathered_items.json
         """
-        with open(gatheredItemsLocation) as file:#Rather than do this all at the start. I should get the data when needed, and then cache it
-            gatheredItemsData = json.load(file)
-            marketData = {}
-            for key in list(gatheredItemsData.keys()):
-                try:
-                    with requests.request("GET", marketDataAddress + gatheredItemsData[key]["id"]) as response:
-                        responseJson = response.json()
-                        print("Item Id: " + str(responseJson['itemID']) + ", lowest price: " + str(responseJson['listings'][0]['pricePerUnit']))
-                        marketData[key] = responseJson
-                except requests.exceptions.RequestException as err:
-                    print(f"Unable to get data from Universalis for {key}: {repr(err)}\n")
-            return gatheredItemsData, marketData
+        #TODO handling if the JSON is bad including KeyError
+        marketDataAddress = f"{universalisUrl}{datacenter}/"
+
+        if os.path.isfile(cachedMarketDataAddress):
+            print("file found")
+            with open(cachedMarketDataAddress) as file:
+                oldMarketData = json.load(file)
+        else:
+            oldMarketData = {}
+
+        newMarketData = {key:value for (key, value) in oldMarketData.items()}
+        with open(gatheredItemsLocation) as file:
+                gatheredItemsData = json.load(file)
+                if datacenter not in newMarketData.keys():
+                    newMarketData[datacenter] = {}
+                for key in list(gatheredItemsData.keys()):#TODO make the time between updates user changeable
+                    if not key in newMarketData[datacenter] or datetime.strptime(newMarketData[datacenter][key]['time'], "%Y-%m-%dT%H:%M:%S") < (datetime.now() - timedelta(hours=2)): #Key doesn't exist or the data was fetched more than two hours ago
+                        with requests.request("GET", marketDataAddress + gatheredItemsData[key]["id"]) as response:
+                            responseJson = response.json()
+                            print("Item Id: " + str(responseJson['itemID']) + ", lowest price: " + str(responseJson['listings'][0]['pricePerUnit']))
+                            newMarketData[datacenter][key] = {}
+                            newMarketData[datacenter][key]['minPrice'] = responseJson['listings'][0]['pricePerUnit']
+                            newMarketData[datacenter][key]['time'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        
+        if newMarketData != oldMarketData:
+            with open(cachedMarketDataAddress, 'w') as file:
+                json.dump(newMarketData, file)
+        else:
+            print("Equal")
+        
+        return gatheredItemsData, newMarketData[datacenter]
 
 
     async def gatherAlert(self, key, getTime=getEorzeaTimeDecimal):
@@ -49,7 +74,7 @@ class NotificationsProvider:
         self.despawnCallback should have the argument name
         """
         valuesData = self.gatheredItemsData
-        price = self.marketData[key]['listings'][0]['pricePerUnit']
+        price = self.marketData[key]['minPrice']
         while True:
             eorzeaHours = getTime()[0]
             currentTimeIndex = 0
@@ -85,7 +110,6 @@ class NotificationsProvider:
             print(f"Node: {key}, nextTimeIndex: {nextTimeIndex}, sleep for: {sleepTime}")
             await asyncio.sleep(sleepTime)
 
-
     def beginGatherAlerts(self):
         """
         Starts gatherAlerts for all gatherable items on a new event loop
@@ -101,12 +125,13 @@ class NotificationsProvider:
             self.loop.close()
 
     async def checkToStop(self):
-        """Stops the asyncio loop for gather alerts"""
+        """Stops the asyncio loop for gather alerts if the stop flag has been set (by stopGatherAlerts)"""
         while not self.stop:
             await asyncio.sleep(1)
         self.loop.stop()
 
     def stopGatherAlerts(self):
+        """Tells the object to stop the asyncio loop for gather alerts"""
         self.stop = True
 
 if __name__ == "__main__":

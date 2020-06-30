@@ -22,9 +22,9 @@ presets = {'size':{'standard':
             }
 
 gatheredItemsLocation = '../res/values.json'
-universalisUrl = "https://universalis.app/api/"
 
 class InspectableLabel(tk.Label):
+    """A label associated with an inspectPanel (Frame)"""
     def __init__(self, app, root, inspectPanel, **kwargs):
         super().__init__(root, kwargs)
         self.app = app
@@ -32,6 +32,10 @@ class InspectableLabel(tk.Label):
         self.bind('<Button-1>', self.toggleInspector)
     #TODO change colour on hover
     def toggleInspector(self, event):
+        """
+        If the inspector for this label is currently shown, it is hidden. 
+        Otherwise the inspector for this label is displayed
+        """
         if not self.app.inspector or self.app.inspector != self.inspectPanel:
             self.app.showInspector(self.inspectPanel)
         else:
@@ -83,7 +87,7 @@ class Settings():
         self.root.mainloop()
 
     def saveSettings(self):
-        """"Saves any changes to the settings, closes the settings window, and reloads the main window"""
+        """"Saves any changes to the settings, closes the settings window, and reloads the main window if it exists"""
         updateValue('size', self.size.get())
         print(f"Updated size to {self.size.get()}")
         updateValue('datacenter', self.datacenter.get())

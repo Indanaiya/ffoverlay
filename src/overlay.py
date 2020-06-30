@@ -196,7 +196,7 @@ class Main():
         Creates and runs a NotificationsProvider object. \n
         (Should always be run in a seperate thread because it will not stop on its own)
         """
-        self.notificationsProvider = NotificationsProvider(gatheredItemsLocation, f"{universalisUrl}{self.configValues['general']['datacenter']}/", self.nodeSpawn, self.nodeDespawn)
+        self.notificationsProvider = NotificationsProvider(gatheredItemsLocation, self.configValues['general']['datacenter'], self.nodeSpawn, self.nodeDespawn)
         self.notificationsProvider.beginGatherAlerts()
 
     async def nodeSpawn(self, name=None, price=None, itemValues=None, spawnTime=None, despawnTime=None, marketData=None):
