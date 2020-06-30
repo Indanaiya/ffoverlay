@@ -25,32 +25,35 @@ gatheredItemsLocation = '../res/values.json'
 universalisUrl = "https://universalis.app/api/"
 
 class InspectableLabel(tk.Label):
-    def __init__(self, app, inspectPanel, **kwargs):
-        super().__init__(app.root, kwargs)
+    def __init__(self, app, root, inspectPanel, **kwargs):
+        super().__init__(root, kwargs)
         self.app = app
         self.inspectPanel = inspectPanel
         self.bind('<Button-1>', self.toggleInspector)
-
+    #TODO change colour on hover
     def toggleInspector(self, event):
         if not self.app.inspector or self.app.inspector != self.inspectPanel:
             self.app.showInspector(self.inspectPanel)
         else:
             self.app.hideInspector()
 
-
-#Settings window
 class Settings():
+    """Settings window"""
     def __init__(self, app, main=None):
-        self.app=app
-        self.main = main
-        self.config = getConfig()
+        self._app = app
+        self._main = main
+        self._config = getConfig()
 
-    def destroyed(self, event): #Does not save the settings
-        self.app.window.wm_attributes("-disabled", False)#Makes the main window interactable again
+    def destroyed(self, event):
+        """Makes the main window interactable"""
+        self._app.unfreezeWindow()
 
     def showSettings(self, event):
+        """Opens the settings window"""
         print("Settings button pressed.")
-        self.app.window.wm_attributes("-disabled", True)#Makes the main window uninteractable
+        self._app.freezeWindow() #Makes the main window uninteractable
+
+        #Window:
         self.root = tk.Tk()
         self.root.title("Settings")
         self.root.geometry('175x200')
@@ -58,32 +61,33 @@ class Settings():
 
         #Size selector:
         self.size = tk.StringVar(self.root) #Stores the string that sizeSelector is. Accessed with self.size.get()
-        self.size.set(self.config['general']['size']) #Sets the default for the sizeSelector
-        self.sizeLabel = tk.Label(self.root, text="Size: ")
-        self.sizeLabel.grid(row=0, column=0)
-        self.sizeSelector = tk.OptionMenu(self.root, self.size, *[size for size in presets['size'].keys()])
-        self.sizeSelector.grid(row=0, column=1)
+        self.size.set(self._config['general']['size']) #Sets the default for the sizeSelector
+        sizeLabel = tk.Label(self.root, text="Size: ")
+        sizeLabel.grid(row=0, column=0)
+        sizeSelector = tk.OptionMenu(self.root, self.size, *[size for size in presets['size'].keys()])
+        sizeSelector.grid(row=0, column=1)
 
         #Datacenter selector:
         self.datacenter = tk.StringVar(self.root)
-        self.datacenter.set(self.config['general']['datacenter'])
-        self.datacenterLabel = tk.Label(self.root, text="Datacenter: ")
-        self.datacenterLabel.grid(row=1, column=0)
-        self.datacenterSelector = tk.OptionMenu(self.root, self.datacenter, *[datacenter for datacenter in presets['datacenter'].keys()])
-        self.datacenterSelector.grid(row=1, column=1)
+        self.datacenter.set(self._config['general']['datacenter'])
+        datacenterLabel = tk.Label(self.root, text="Datacenter: ")
+        datacenterLabel.grid(row=1, column=0)
+        datacenterSelector = tk.OptionMenu(self.root, self.datacenter, *[datacenter for datacenter in presets['datacenter'].keys()])
+        datacenterSelector.grid(row=1, column=1)
 
         #Submit button:
-        self.submit = tk.Button(self.root, text="Save Changes", command=self.saveSettings)
-        self.submit.grid(row=2, column=1)
-        self.submit.bind('<Button-1>')
+        submit = tk.Button(self.root, text="Save Changes", command=self.saveSettings)
+        submit.grid(row=2, column=1)
+        submit.bind('<Button-1>')
 
         self.root.mainloop()
 
     def saveSettings(self):
+        """"Saves any changes to the settings, closes the settings window, and reloads the main window"""
         updateValue('size', self.size.get())
         print(f"Updated size to {self.size.get()}")
         updateValue('datacenter', self.datacenter.get())
         print(f"Updated datacenter to {self.datacenter.get()}")
         self.root.destroy()
-        if self.main:
-            self.main.restart()
+        if self._main:
+            self._main.restart()

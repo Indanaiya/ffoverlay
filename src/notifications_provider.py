@@ -58,7 +58,6 @@ class NotificationsProvider:
             spawnTimes = valuesData[key]['spawnTimes']
             for i in range(len(spawnTimes)):
                 if eorzeaHours >= int(spawnTimes[i][:2]) and eorzeaHours < int(spawnTimes[i][:2])+valuesData[key]['lifespan']: #Means the node is up
-                    #print(f"Function says New node spawn[{eorzeaHours}]: {valuesData[key]['name']}  {price}gil per unit")
                     currentTimeIndex = i
                     nextTimeIndex = (i+1, 0)[i==len(spawnTimes)-1]
 
@@ -74,11 +73,12 @@ class NotificationsProvider:
                     await self.despawnCallback(name=name)
 
                     break
+                elif eorzeaHours < int(spawnTimes[i][:2]):
+                    nextTimeIndex = i
+                    break
                 elif i == len(spawnTimes) - 1:#eorzeaHours > int(spawnTimes[i][:2]) is implied by reaching this point
                     nextTimeIndex = 0
                     break #Break here is just for clarity. if i==len(spawnTimes)-1 then this would be the last itteration of the for loop regardless
-                elif eorzeaHours < int(spawnTimes[i][:2]):
-                    nextTimeIndex = i
 
             #Wait for node to spawn again:
             sleepTime = timeUntilInEorzea(int(spawnTimes[nextTimeIndex][:2]))
