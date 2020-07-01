@@ -6,6 +6,7 @@ import time
 from datetime import datetime, timedelta
 import inspect
 import os
+import copy
 from eorzea_time import getEorzeaTime, timeUntilInEorzea, getEorzeaTimeDecimal
 
 cachedMarketDataAddress = "../res/chachedMarketData.json"
@@ -43,20 +44,22 @@ class NotificationsProvider:
         else:
             oldMarketData = {}
 
-        newMarketData = {key:value for (key, value) in oldMarketData.items()}
+        newMarketData = copy.deepcopy(oldMarketData)
+        
         with open(gatheredItemsLocation) as file:
                 gatheredItemsData = json.load(file)
                 if datacenter not in newMarketData.keys():
                     newMarketData[datacenter] = {}
                 for key in list(gatheredItemsData.keys()):#TODO make the time between updates user changeable
-                    if not key in newMarketData[datacenter] or datetime.strptime(newMarketData[datacenter][key]['time'], "%Y-%m-%dT%H:%M:%S") < (datetime.now() - timedelta(hours=2)): #Key doesn't exist or the data was fetched more than two hours ago
+                    if (not key in newMarketData[datacenter]) or (datetime.strptime(newMarketData[datacenter][key]['time'], "%Y-%m-%dT%H:%M:%S") < (datetime.now() - timedelta(hours=2))): #Key doesn't exist or the data was fetched more than two hours ago
                         with requests.request("GET", marketDataAddress + gatheredItemsData[key]["id"]) as response:
                             responseJson = response.json()
                             print("Item Id: " + str(responseJson['itemID']) + ", lowest price: " + str(responseJson['listings'][0]['pricePerUnit']))
                             newMarketData[datacenter][key] = {}
                             newMarketData[datacenter][key]['minPrice'] = responseJson['listings'][0]['pricePerUnit']
                             newMarketData[datacenter][key]['time'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        
+                            
+
         if newMarketData != oldMarketData:
             with open(cachedMarketDataAddress, 'w') as file:
                 json.dump(newMarketData, file)
