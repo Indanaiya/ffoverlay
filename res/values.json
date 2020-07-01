@@ -81,5 +81,65 @@
     "y": 13,
     "patch": "5.0",
     "class": "BTN"
+  },
+
+  "Bog Sage": {
+    "name": "Agewood Aethersand (Bog Sage)",
+    "id": "27814",
+    "spawnTimes": ["12:00"],
+    "lifespan": 4,
+    "map": "Lakeland",
+    "x": 25,
+    "y": 30,
+    "patch": "5.0",
+    "class": "BTN"
+  },
+  
+  "Sweet Marjoram": {
+    "name": "Scuroglow Aethersand (Sweet Marjoram)",
+    "id": "27812",
+    "spawnTimes": ["04:00"],
+    "lifespan": 4,
+    "map": "The Rak'tika Greatwood",
+    "x": 27,
+    "y": 24,
+    "patch": "5.0",
+    "class": "BTN"
+  },
+  
+  "Gale Rock": {
+    "name": "Chiaroglow Aethersand (Gale Rock)",
+    "id": "27811",
+    "spawnTimes": ["00:00"],
+    "lifespan": 4,
+    "map": "The Rak'tika Greatwood",
+    "x": 26,
+    "y": 29,
+    "patch": "5.0",
+    "class": "MIN"
+  },
+
+  "Solarite": {
+    "name": "Scuroglow Aethersand (Solarite)",
+    "id": "27812",
+    "spawnTimes": ["08:00"],
+    "lifespan": 4,
+    "map": "Lakeland",
+    "x": 27,
+    "y": 15,
+    "patch": "5.0",
+    "class": "MIN"
+  },
+  
+  "Shade Quartz": {
+    "name": "Agedeep Aehtersand (Shade Quartz)",
+    "id": "27813",
+    "spawnTimes": ["16:00"],
+    "lifespan": 4,
+    "map": "Kholusia",
+    "x": 22,
+    "y": 18,
+    "patch": "5.0",
+    "class": "MIN"
   }
 }
