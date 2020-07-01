@@ -177,6 +177,7 @@ class Main():
         #Don't necessarily need to restart the program if the datacenter changed but the size didn't, but this seems easier to code and it's fast enough
         self.app.destroyWindow()
         self.configValues['general']['size'] = newConfigValues['general']['size']
+        self.app.setupWindow(size=self.configValues['general']['size'], main=self)
 
         if newConfigValues['general']['datacenter'] != self.configValues['general']['datacenter']:
             self.spawnLabels = {}
@@ -187,8 +188,6 @@ class Main():
             self.notificationsProviderThread = threading.Thread(target = self.setupNotificationsProvider)
             self.notificationsProviderThread.start()
 
-        self.app.setupWindow(size=self.configValues['general']['size'], main=self)
-        asyncio.run(self.redrawLabels())
         self.app.mainloop()
 
     def setupNotificationsProvider(self):

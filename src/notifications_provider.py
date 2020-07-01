@@ -135,8 +135,6 @@ class NotificationsProvider:
         while not self.stop:
             await asyncio.sleep(1)
         self.loop.stop()
-        for key in list(self.gatheredItemsData.keys()): #Despawn all the items
-            self.despawnCallback(name=key)
 
     def stopGatherAlerts(self):
         """Tells the object to stop the asyncio loop for gather alerts"""
