@@ -8,6 +8,7 @@ import inspect
 import os
 import copy
 from eorzea_time import getEorzeaTime, timeUntilInEorzea, getEorzeaTimeDecimal
+from load_configuration import getConfig
 
 cachedMarketDataAddress = "../res/chachedMarketData.json"
 universalisUrl = "https://universalis.app/api/"
@@ -36,6 +37,8 @@ class NotificationsProvider:
         """
         #TODO handling if the JSON is bad including KeyError
         marketDataAddress = f"{universalisUrl}{datacenter}/"
+        universalisUpdateFrequency = int(getConfig()['general']['universalisupdatefrequency'])
+
 
         if os.path.isfile(cachedMarketDataAddress):
             print("file found")
@@ -45,13 +48,13 @@ class NotificationsProvider:
             oldMarketData = {}
 
         newMarketData = copy.deepcopy(oldMarketData)
-        
+
         with open(gatheredItemsLocation) as file:
                 gatheredItemsData = json.load(file)
                 if datacenter not in newMarketData.keys():
                     newMarketData[datacenter] = {}
                 for key in list(gatheredItemsData.keys()):#TODO make the time between updates user changeable
-                    if (not key in newMarketData[datacenter]) or (datetime.strptime(newMarketData[datacenter][key]['time'], "%Y-%m-%dT%H:%M:%S") < (datetime.now() - timedelta(hours=2))): #Key doesn't exist or the data was fetched more than two hours ago
+                    if (not key in newMarketData[datacenter]) or (datetime.strptime(newMarketData[datacenter][key]['time'], "%Y-%m-%dT%H:%M:%S") < (datetime.now() - timedelta(hours=universalisUpdateFrequency))): #Key doesn't exist or the data was fetched more than the update frequency hours ago
                         with requests.request("GET", marketDataAddress + gatheredItemsData[key]["id"]) as response:
                             responseJson = response.json()
                             print("Item Id: " + str(responseJson['itemID']) + ", lowest price: " + str(responseJson['listings'][0]['pricePerUnit']))
