@@ -2,10 +2,12 @@ import configparser
 import os
 
 configAddress = "../config/config.ini"
-defaults = {'size':'standard', 'datacenter':'Chaos', 'universalisupdatefrequency': 6}
+defaults = {'size':'standard', 'datacenter':'Chaos', 'universalisupdatefrequency': '6'}
 acceptedValues = {'size': ['standard', 'large'], 'datacenter':['Chaos','Light','Aether','Primal','Crystal','Elemental','Gaia','Mana'], 'universalisupdatefrequency': [i for i in range(1,100)]}
 
 def generateConfig():
+    if not os.path.isdir(configAddress + "/.."):
+        os.mkdir(configAddress + "/..")
     parser = configparser.ConfigParser()
     parser['general'] = defaults
     with open(configAddress, 'w') as configfile:
