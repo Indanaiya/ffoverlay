@@ -53,7 +53,7 @@ class NotificationsProvider:
                 gatheredItemsData = json.load(file)
                 if datacenter not in newMarketData.keys():
                     newMarketData[datacenter] = {}
-                for key in list(gatheredItemsData.keys()):#TODO make the time between updates user changeable
+                for key in list(gatheredItemsData.keys()):
                     if (not key in newMarketData[datacenter]) or (datetime.strptime(newMarketData[datacenter][key]['time'], "%Y-%m-%dT%H:%M:%S") < (datetime.now() - timedelta(hours=universalisUpdateFrequency))): #Key doesn't exist or the data was fetched more than the update frequency hours ago
                         with requests.request("GET", marketDataAddress + gatheredItemsData[key]["id"]) as response:
                             responseJson = response.json()
