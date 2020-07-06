@@ -3,7 +3,7 @@ import os
 
 configAddress = "../config/config.ini"
 defaults = {'size':'standard', 'datacenter':'Chaos', 'universalisupdatefrequency': '6'}
-acceptedValues = {'size': ['standard', 'large'], 'datacenter':['Chaos','Light','Aether','Primal','Crystal','Elemental','Gaia','Mana'], 'universalisupdatefrequency': [i for i in range(1,100)]}
+acceptedValues = {'size': ['standard', 'large'], 'datacenter':['Chaos','Light','Aether','Primal','Crystal','Elemental','Gaia','Mana'], 'universalisupdatefrequency': [str(i) for i in range(1,100)]}
 
 def generateConfig():
     if not os.path.isdir(configAddress + "/.."):
@@ -21,7 +21,7 @@ def getConfig():
     parser.read(configAddress)
     #Getting all the keys in the ini
     parsedKeys = []
-    print(parser.items('general'))
+    
     for x,y in parser.items('general'):
         parsedKeys.append(x)
 
