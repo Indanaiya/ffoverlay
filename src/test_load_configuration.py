@@ -7,7 +7,7 @@ import copy
 def test_generateConfig(self):
     generateConfig()
     parser = configparser.ConfigParser()
-    parser.read(configAddress)
+    parser.read(config_address)
     self.assertEqual(dict(parser['general']), defaults)
 
 def test_updateValue(self, key, value):
@@ -17,22 +17,22 @@ def test_updateValue(self, key, value):
 class LoadConfigTests(unittest.TestCase):
     def test_generateConfig_fresh_file(self):
         """Testing generateConfig when it does not have to overwrite a file"""
-        if os.path.isfile(configAddress):
-            os.remove(configAddress)
+        if os.path.isfile(config_address):
+            os.remove(config_address)
         test_generateConfig(self)
 
     def test_generateConfig_no_config_folder(self):
         """Tests that generateConfig works when there is no directory to store the config file in"""
-        if os.path.isdir(configAddress + "/.."):
-            shutil.rmtree(configAddress + "/..")
+        if os.path.isdir(config_address + "/.."):
+            shutil.rmtree(config_address + "/..")
         test_generateConfig(self)
 
     def test_generateConfig_overwrite_file(self):
         """Tests that generateConfig works when there is already a config file"""
-        if os.path.isfile(configAddress):
-            os.remove(configAddress)
-        open(configAddress, "w").close()
-        if not os.path.isfile(configAddress):
+        if os.path.isfile(config_address):
+            os.remove(config_address)
+        open(config_address, "w").close()
+        if not os.path.isfile(config_address):
             raise Exception
         test_generateConfig(self)
 
@@ -43,20 +43,20 @@ class LoadConfigTests(unittest.TestCase):
 
     def test_getConfig_but_there_is_no_config_file(self):
         """Tests getConfig when there is no config file"""
-        if os.path.isfile(configAddress):
-            os.remove(configAddress)
+        if os.path.isfile(config_address):
+            os.remove(config_address)
         self.assertEqual(getConfig()['general'], defaults)
 
     def test_getConfig_with_missing_keys_in_config_file(self):
         """Tests that getConfig will rewrite the config file if the config file does not contain all the keys in acceptedValues.keys()"""
         #Write the bad config file
-        if not os.path.isdir(configAddress + "/.."):
-            os.mkdir(configAddress + "/..")
+        if not os.path.isdir(config_address + "/.."):
+            os.mkdir(config_address + "/..")
         parser = configparser.ConfigParser()
-        badDefaults = copy.deepcopy(defaults)
-        badDefaults.pop('size')
-        parser['general'] = badDefaults
-        with open(configAddress, 'w') as configfile:
+        bad_defaults = copy.deepcopy(defaults)
+        bad_defaults.pop('size')
+        parser['general'] = bad_defaults
+        with open(config_address, 'w') as configfile:
             parser.write(configfile)
 
         #Read the bad config file
@@ -66,13 +66,13 @@ class LoadConfigTests(unittest.TestCase):
     def test_getConfig_with_extra_keys_in_config_file(self):
         """Tests that getConfig will rewrite the config file if the config file contains keys that aren't in acceptedValues.keys()"""
         #Write the bad config file
-        if not os.path.isdir(configAddress + "/.."):
-            os.mkdir(configAddress + "/..")
+        if not os.path.isdir(config_address + "/.."):
+            os.mkdir(config_address + "/..")
         parser = configparser.ConfigParser()
-        badDefaults = copy.deepcopy(defaults)
-        badDefaults['soize'] = 'starndard'
-        parser['general'] = badDefaults
-        with open(configAddress, 'w') as configfile:
+        bad_defaults = copy.deepcopy(defaults)
+        bad_defaults['soize'] = 'starndard'
+        parser['general'] = bad_defaults
+        with open(config_address, 'w') as configfile:
             parser.write(configfile)
 
         #Read the bad config file
