@@ -85,7 +85,7 @@ class NotificationsProvider:
                     despawn_time = int(spawn_times[current_time_index][:2]) + self.gatherable_items[key]['lifespan']
 
                     #Notification for spawn:
-                    await self.spawn_callback(name=name, price=price, itemValues=gatherable_items[key], spawn_time=spawn_time, despawn_time=despawn_time, marketData = self.market_data[key])
+                    await self.spawn_callback(name=name, price=price, item_values=gatherable_items[key], spawn_time=spawn_time, despawn_time=despawn_time, market_data = self.market_data[key])
 
                     #Notification for despawn:
                     sleep_time = timeUntilInEorzea((despawn_time, despawn_time-24)[despawn_time>=24])#Ternary is to loop back around from 24 to 00 (of the next day)
