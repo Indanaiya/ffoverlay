@@ -180,7 +180,7 @@ class Main():
         self.app.setupWindow(size=self.config_values['general']['size'], main=self)
 
         if new_config_values['general']['datacenter'] != self.config_values['general']['datacenter']:
-            self.spawn_labels = {}
+            self.gatherable_labels = {}
             self.notifications_provider.stopGatherAlerts()
             while not self.notifications_provider_thread.isAlive():
                 time.sleep(0.25) #TODO there must be a better way of doing this
@@ -188,6 +188,7 @@ class Main():
             self.notifications_provider_thread = threading.Thread(target = self.setupNotificationsProvider)
             self.notifications_provider_thread.start()
 
+        asyncio.run(self.redrawLabels())
         self.app.mainloop()
 
     def setupNotificationsProvider(self):
