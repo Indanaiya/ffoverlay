@@ -6,7 +6,7 @@ from notifications_provider import NotificationsProvider
 from load_configuration import getConfig, updateValue
 from overlay_components import *
 
-fgColor = '#FEFEFE'
+fg_colour = '#FEFEFE'
 
 #Transparency will only work on windows
 class App():
@@ -136,23 +136,23 @@ class App():
         grid_number = 0 #Iterator for column Number
 
         if item_info['itemValues']:
-            location_label = tk.Label(inspect_panel, fg=fgColor, bg=INSPECT_PANEL_BG_COLOUR, text=f"Location: {item_info['itemValues']['map']} ({item_info['itemValues']['x']}, {item_info['itemValues']['y']})")
+            location_label = tk.Label(inspect_panel, fg=fg_colour, bg=INSPECT_PANEL_BG_COLOUR, text=f"Location: {item_info['itemValues']['map']} ({item_info['itemValues']['x']}, {item_info['itemValues']['y']})")
             location_label.grid(row=grid_number, sticky='w')
             grid_number+=1
 
         if item_info['spawnTime']:
-            spawn_time_label = tk.Label(inspect_panel, fg=fgColor, bg=INSPECT_PANEL_BG_COLOUR, text=f"Spawn Time: {item_info['spawnTime']}:00")#Will need changing if something ever spawns not on the hour
+            spawn_time_label = tk.Label(inspect_panel, fg=fg_colour, bg=INSPECT_PANEL_BG_COLOUR, text=f"Spawn Time: {item_info['spawnTime']}:00")#Will need changing if something ever spawns not on the hour
             spawn_time_label.grid(row=grid_number, sticky='w')
             grid_number+=1
 
         if item_info['despawnTime']:
-            despawn_time_label = tk.Label(inspect_panel, fg=fgColor, bg=INSPECT_PANEL_BG_COLOUR, text=f"Despawn Time: {item_info['despawnTime']}:00")
+            despawn_time_label = tk.Label(inspect_panel, fg=fg_colour, bg=INSPECT_PANEL_BG_COLOUR, text=f"Despawn Time: {item_info['despawnTime']}:00")
             despawn_time_label.grid(row=grid_number, sticky='w')
             grid_number+=1
 
         #TODO priceOnEachServerAndLastUpdateTime
         #TODO buttonToOpenInGamerescape
-        label = InspectableLabel(self, self._root, inspect_panel, text=f"{name} | {item_info['price']}gil", font=('Helvetica', presets['size'][self._size]['font-size']), bg='#565356', fg=fgColor)
+        label = InspectableLabel(self, self._root, inspect_panel, text=f"{name} | {item_info['price']}gil", font=('Helvetica', presets['size'][self._size]['font-size']), bg='#565356', fg=fg_colour)
         
         self.gatherable_labels[name] = label
         self.redrawGatherableLabels()
